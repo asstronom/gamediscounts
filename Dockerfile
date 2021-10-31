@@ -7,7 +7,6 @@ COPY . .
 # Obtain the package needed to run code. Alternatively use GO Modules. 
 RUN go get -u github.com/lib/pq
 RUN go get -u github.com/tidwall/gjson
-RUN go get -u 
 # Compile the binary exe for our app.
 RUN go build -o main .
 # Start the application.
