@@ -3,10 +3,9 @@ package postgres
 import (
 	"database/sql"
 	"fmt"
+	"github.com/gamediscounts/model/steamapi"
 	"log"
 	"time"
-
-	"github.com/gamediscounts/steamapi"
 )
 
 var (

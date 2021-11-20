@@ -1,9 +1,13 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"github.com/gamediscounts/db/postgres"
+	"github.com/gamediscounts/server"
+	"net/http"
+	"time"
 
 	//"io/ioutil"
 	"log"
@@ -131,4 +135,25 @@ func main() {
 	if err != nil {
 		log.Fatalln(err)
 	}
+
+	ctx:= context.Background()
+	s:= server.Init(ctx,solvedata)
+	addr:=":8080"
+
+	httpServer:= &http.Server{
+		Addr: addr,
+		Handler: s,
+		ReadTimeout: 10 * time.Second,
+		WriteTimeout: 10 * time.Second,
+	}
+	fmt.Printf("staring web server on %s",addr)
+	if err := httpServer.ListenAndServe(); err!=nil{
+		log.Fatalln( err)
+	}
 }
+
+/*func StartServer( ctx context.Context, db *postgres.SolveDB)error{
+	//router := mux.NewRouter()
+
+	return nil
+}*/
