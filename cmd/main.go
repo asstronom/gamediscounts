@@ -3,12 +3,12 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"github.com/gamediscounts/db/postgres"
 
 	//"io/ioutil"
 	"log"
 	//"net/http"
 
-	"github.com/gamediscounts/postgres"
 	_ "github.com/lib/pq"
 	//"github.com/tidwall/gjson"
 )
