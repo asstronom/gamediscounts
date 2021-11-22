@@ -14,7 +14,7 @@ var (
 )
 
 type GameDB struct {
-	PgDb *sql.DB
+	*sql.DB
 }
 
 type GamePrice struct {
@@ -41,41 +41,96 @@ func Open(credentials string) (*GameDB, error) {
 	return &database, nil
 }
 
-func (DB GameDB) Close() {
-	DB.PgDb.Close()
+func (DB *GameDB) CloseDB() {
+	DB.Close()
 }
 
-func (DB GameDB) InitTables() error {
-	//needs to be reworked
+func (DB *GameDB) InitTables() error {
+	// _, err := DB.Exec("DROP DATABASE IF EXISTS gamediscounts")
+	// if err != nil {
+	// 	return err
+	// }
+	_, err := DB.Exec("DROP TABLE IF EXISTS game CASCADE")
+	if err != nil {
+		return err
+	}
+	_, err = DB.Exec("DROP TABLE IF EXISTS gameprice CASCADE")
+	if err != nil {
+		return err
+	}
+	_, err = DB.Exec("DROP TABLE IF EXISTS store CASCADE")
+	if err != nil {
+		return err
+	}
+	// _, err = DB.Exec("CREATE DATABASE gamediscounts")
+	// if err != nil {
+	// 	return err
+	// }
+	_, err = DB.Exec(`CREATE TABLE game (
+		id SERIAL PRIMARY KEY,
+		name varchar(255) UNIQUE)`)
+	if err != nil {
+		return err
+	}
+	_, err = DB.Exec(`CREATE TABLE store (
+		id SERIAL PRIMARY KEY,
+		name varchar(255) UNIQUE)`)
+	if err != nil {
+		return err
+	}
+	_, err = DB.Exec(`CREATE TABLE gameprice (
+		gameid INT REFERENCES game (id) ON UPDATE CASCADE ON DELETE CASCADE,
+		storeid INT REFERENCES store (id) ON UPDATE CASCADE ON DELETE CASCADE,
+		CONSTRAINT gamePriceId PRIMARY KEY (gameid, storeid),
+		storegameid VARCHAR(255) UNIQUE,
+		price NUMERIC,
+		discount INT DEFAULT 0, 
+		free BOOLEAN DEFAULT FALSE)`)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
-func (DB GameDB) InitGames() error {
+func (DB *GameDB) InitStores() error {
+	query := fmt.Sprintf(`INSERT INTO store (id, name) VALUES (%d, 'steam')`, steamid)
+	_, err := DB.Exec(query)
+	if err != nil {
+		fmt.Println("Error InitStores")
+		return err
+	}
+
+	return nil
+}
+
+func (DB *GameDB) InitGames() error {
 	res := steamapi.GetAppList()
-	for i := 0; i < 10; i++ {
+	for i := 0; i < len(res); i++ {
 		var curSteamId int = int(res[i].Get("appid").Value().(float64))
 		var curName string = res[i].Get("name").Value().(string)
 		//fmt.Println("Current game: ", curName, curSteamId)
-		sqlQuery := fmt.Sprintf(`INSERT INTO game(name) VALUES ('%s')`, curName)
-		_, err := DB.PgDb.Exec(sqlQuery)
+		//sqlQuery := fmt.Sprintf(`INSERT INTO game(name) VALUES ('%s')`, curName)
+		_, err := DB.Exec(`INSERT INTO game(name) VALUES ($1)`, curName)
 		if err != nil {
 			if err.Error() != `pq: duplicate key value violates unique constraint "game_name_key"` {
+				fmt.Println("Error in InitGames", curSteamId, curName)
 				return err
 			}
 		}
-		sqlQuery = fmt.Sprintf(`SELECT game.id FROM game WHERE name = '%s'`, curName)
+		//sqlQuery = fmt.Sprintf(`SELECT game.id FROM game WHERE name = '%s'`, curName)
 		var gameid int
 
-		err = DB.PgDb.QueryRow(sqlQuery).Scan(&gameid)
-		fmt.Println(gameid)
+		err = DB.QueryRow(`SELECT game.id FROM game WHERE name = $1`, curName).Scan(&gameid)
+		//fmt.Println(gameid)
 		if err != nil {
 			return err
 		}
 		//fmt.Println("Gameid:", gameid)
-		sqlQuery = fmt.Sprintf(`INSERT INTO gameprice(gameid, storeid, storegameid) VALUES (%d, %d, '%d')`, gameid, steamid, curSteamId)
-		_, err = DB.PgDb.Exec(sqlQuery)
+		//sqlQuery = fmt.Sprintf(`INSERT INTO gameprice(gameid, storeid, storegameid) VALUES (%d, %d, '%d')`, gameid, steamid, curSteamId)
+		_, err = DB.Exec(`INSERT INTO gameprice(gameid, storeid, storegameid) VALUES ($1, $2, $3)`, gameid, steamid, curSteamId)
 		if err != nil {
-			if err.Error() != `pq: duplicate key value violates unique constraint "id"` {
+			if err.Error() != `pq: duplicate key value violates unique constraint "gamepriceid"` {
+				fmt.Println("Error in InitGames", curSteamId, curName)
 				return err
 			}
 		}
@@ -87,17 +142,23 @@ func (DB *GameDB) InitGamePrice() error {
 	gameids := []int{}
 	steamgameids := []int{}
 	sqlQuery := "SELECT storegameid, gameid FROM gameprice"
-	var temp *sql.DB = DB.PgDb
-	rows, err := temp.Query(sqlQuery)
+	//var temp *sql.DB = DB.PgDb
+	rows, err := DB.Query(sqlQuery)
 	if err != nil {
 		return err
 	}
 	defer rows.Close()
-	if !rows.NextResultSet() {
-		fmt.Println(rows.Err())
-	}
 	fmt.Println("Parsing rows")
+	// if !rows.Next() {
+	// 	log.Fatalln("FML")
+	// }
+	// var res1 int
+	// var res2 int
+
+	// rows.Scan(&res1, &res2)
+
 	for i := 0; rows.Next() && i < 250; i++ {
+		//fmt.Printf("EZ")
 		var steamgameid int
 		var dbgameid int
 		if err := rows.Scan(&steamgameid, &dbgameid); err != nil {
@@ -111,13 +172,16 @@ func (DB *GameDB) InitGamePrice() error {
 	if err != nil {
 		return err
 	}
-
+	fmt.Println(len(*prices))
 	for i := 0; i < len(*prices); i++ {
-		sqlQuery = fmt.Sprintf(`INSERT INTO gameprice(gameid, storeid, price, discount, free)`, gameids[i], steamid,
+		sqlQuery = fmt.Sprintf(`UPDATE gameprice SET price = %f, discount = %f, free = %t WHERE gameid = %d AND storeid = %d`,
 			(*(*prices)[i]).Initial/100,
 			(*(*prices)[i]).Discount_percent,
-			(*(*prices)[i]).Initial == 0)
-		_, err = DB.PgDb.Exec(sqlQuery)
+			(*(*prices)[i]).Initial == 0,
+			gameids[i],
+			steamid)
+
+		_, err = DB.Exec(sqlQuery)
 		if err != nil {
 			return err
 		}
@@ -143,7 +207,7 @@ func OpenSolve(credentials string) (*SolveDB, error) {
 		}
 	}
 	fmt.Println("connected:", db.Ping() == nil)
-	var database *SolveDB = &SolveDB{db}
+	database := &SolveDB{db}
 	return database, nil
 }
 
@@ -164,6 +228,8 @@ func (Sol *SolveDB) SolveQuery() {
 	}
 	fmt.Println("Solve", res1, res2)
 }
+
+
 
 func GetAppPrice(gamename string, storename string) int {
 	return 0

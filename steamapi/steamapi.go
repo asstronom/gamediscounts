@@ -120,3 +120,8 @@ func GetAppsPrice(appids *[]int, cc string) (*[]*PriceOverview, error) {
 
 	return &result, nil
 }
+
+func GetFeaturedCategories() (*[]*PriceOverview, error) {
+	
+	return ,nil
+}
