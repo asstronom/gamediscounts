@@ -181,6 +181,9 @@ func (DB *GameDB) InitGamePrice() error {
 			gameids[i],
 			steamid)
 
+		if (*prices)[i] == nil {
+			continue
+		}
 		_, err = DB.Exec(`UPDATE gameprice SET price = $1, discount = $2, free = $3 WHERE gameid = $4 AND storeid = $5`,
 			(*(*prices)[i]).Initial/100,
 			(*(*prices)[i]).Discount_percent,
