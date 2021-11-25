@@ -93,8 +93,8 @@ func (DB *GameDB) InitTables() error {
 }
 
 func (DB *GameDB) InitStores() error {
-	query := fmt.Sprintf(`INSERT INTO store (id, name) VALUES (%d, 'steam')`, steamid)
-	_, err := DB.Exec(query)
+	//query := fmt.Sprintf(`INSERT INTO store (id, name) VALUES (%d, 'steam')`, steamid)
+	_, err := DB.Exec(`INSERT INTO store (id, name) VALUES ($1, 'steam')`, steamid)
 	if err != nil {
 		fmt.Println("Error InitStores")
 		return err
@@ -181,7 +181,12 @@ func (DB *GameDB) InitGamePrice() error {
 			gameids[i],
 			steamid)
 
-		_, err = DB.Exec(sqlQuery)
+		_, err = DB.Exec(`UPDATE gameprice SET price = $1, discount = $2, free = $3 WHERE gameid = $4 AND storeid = $5`,
+			(*(*prices)[i]).Initial/100,
+			(*(*prices)[i]).Discount_percent,
+			(*(*prices)[i]).Initial == 0,
+			gameids[i],
+			steamid)
 		if err != nil {
 			return err
 		}
@@ -228,8 +233,6 @@ func (Sol *SolveDB) SolveQuery() {
 	}
 	fmt.Println("Solve", res1, res2)
 }
-
-
 
 func GetAppPrice(gamename string, storename string) int {
 	return 0

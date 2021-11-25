@@ -8,6 +8,7 @@ import (
 	//"net/http"
 
 	"github.com/gamediscounts/postgres"
+	"github.com/gamediscounts/steamapi"
 	_ "github.com/lib/pq"
 	//"github.com/tidwall/gjson"
 )
@@ -72,9 +73,31 @@ func run() error {
 	return nil
 }
 
+func TestGetAppPrice() error {
+	fmt.Println(steamapi.GetAppPrice(620, "ua"))
+	fmt.Println(steamapi.GetAppPrice(570, "ua"))
+	fmt.Println(steamapi.GetAppPrice(271590, "ua"))
+	fmt.Println(steamapi.GetAppPrice(400, "ua"))
+	fmt.Println(steamapi.GetAppPrice(216938, "ua"))
+	//fmt.Println(steamapi.GetAppPrice(620, "ua"))
+	//fmt.Println(steamapi.GetAppPrice(620, "ua"))
+	return nil
+}
+
+func TestGetAppsPrice() error {
+	fmt.Println(steamapi.GetAppsPrice(&[]int{620, 570, 271590, 400, 216938}, "ua"))
+	return nil
+}
+
+func RunTests() error {
+	TestGetAppPrice()
+	TestGetAppsPrice()
+	return nil
+}
 func main() {
 	err := run()
 	if err != nil {
 		log.Fatalln(err)
 	}
+	//RunTests()
 }
