@@ -70,7 +70,7 @@ func GetAppPrice(appid int, cc string) (*PriceOverview, error) {
 	res, err := extractPriceOverview(&body, appid)
 
 	if err != nil {
-		if err.Error() != fmt.Sprintf("Invalid appid: %d", appid) ||
+		if err.Error() != fmt.Sprintf("Invalid appid: %d", appid) &&
 			err.Error() != fmt.Sprintf("Game may be free or has different pay methods. Appid: %d", appid) {
 			return nil, err
 		}
@@ -104,7 +104,7 @@ func GetAppsPrice(appids *[]int, cc string) (*[]*PriceOverview, error) {
 		temp, err := extractPriceOverview(&body, (*appids)[i])
 		//fmt.Println(i, temp)
 		if err != nil {
-			if err.Error() != fmt.Sprintf("Invalid appid: %d", (*appids)[i]) ||
+			if err.Error() != fmt.Sprintf("Invalid appid: %d", (*appids)[i]) &&
 				err.Error() != fmt.Sprintf("Game may be free or has different pay methods. Appid: %d", (*appids)[i]) {
 				return nil, err
 			}
@@ -115,7 +115,30 @@ func GetAppsPrice(appids *[]int, cc string) (*[]*PriceOverview, error) {
 	return &result, nil
 }
 
-// func GetFeaturedCategories() (*[]*PriceOverview, error) {
+func GetFeaturedCategories(cc string) ([]int, []PriceOverview, error) {
+	steamapiLink := fmt.Sprintf("https://store.steampowered.com/api/featuredcategories?cc=%s", cc)
+	resp, err := http.Get(steamapiLink)
+	if err != nil {
+		return nil, nil, err
+	}
 
-// 	return ,nil
-// }
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	items := gjson.Get(string(body), "specials.items").Array()
+
+	resultIDs := []int{}
+	resultOverviews := []PriceOverview{}
+
+	for i := 0; i < len(items); i++ {
+		resultIDs = append(resultIDs, int(items[i].Get("id").Value().(float64)))
+		resultOverviews = append(resultOverviews,
+			PriceOverview{items[i].Get("original_price").Value().(float64),
+				items[i].Get("final_price").Value().(float64),
+				items[i].Get("discount_percent").Value().(float64),
+				items[i].Get("currency").Value().(string)})
+	}
+	return resultIDs, resultOverviews, nil
+}

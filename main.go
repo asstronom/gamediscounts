@@ -74,6 +74,7 @@ func run() error {
 }
 
 func TestGetAppPrice() error {
+	fmt.Println("GetAppPrice")
 	fmt.Println(steamapi.GetAppPrice(620, "ua"))
 	fmt.Println(steamapi.GetAppPrice(570, "ua"))
 	fmt.Println(steamapi.GetAppPrice(271590, "ua"))
@@ -85,19 +86,31 @@ func TestGetAppPrice() error {
 }
 
 func TestGetAppsPrice() error {
+	fmt.Println("GetAppsPrice")
 	fmt.Println(steamapi.GetAppsPrice(&[]int{620, 570, 271590, 400, 216938}, "ua"))
+	return nil
+}
+
+func TestGetFeaturedCategories() error {
+	res1, res2, err := steamapi.GetFeaturedCategories("ua")
+	if err != nil {
+		return err
+	}
+	fmt.Println("GetFeaturedCategories\n", res1, res2)
 	return nil
 }
 
 func RunTests() error {
 	TestGetAppPrice()
 	TestGetAppsPrice()
+	TestGetFeaturedCategories()
 	return nil
 }
 func main() {
-	err := run()
-	if err != nil {
-		log.Fatalln(err)
-	}
-	//RunTests()
+	// err := run()
+	// if err != nil {
+	// 	log.Fatalln(err)
+	// }
+
+	RunTests()
 }
