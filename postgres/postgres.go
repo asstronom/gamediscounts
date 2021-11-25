@@ -148,7 +148,7 @@ func (DB *GameDB) InitGamePrice() error {
 		return err
 	}
 	defer rows.Close()
-	fmt.Println("Parsing rows")
+	//fmt.Println("Parsing rows")
 	// if !rows.Next() {
 	// 	log.Fatalln("FML")
 	// }
@@ -167,12 +167,12 @@ func (DB *GameDB) InitGamePrice() error {
 		steamgameids = append(steamgameids, steamgameid)
 		gameids = append(gameids, dbgameid)
 	}
-	fmt.Println("SteamIDs: ", steamgameids)
+	//fmt.Println("SteamIDs: ", steamgameids)
 	prices, err := steamapi.GetAppsPrice(&steamgameids, "ua")
 	if err != nil {
 		return err
 	}
-	fmt.Println(len(*prices))
+	//fmt.Println(len(*prices))
 	for i := 0; i < len(*prices); i++ {
 		sqlQuery = fmt.Sprintf(`UPDATE gameprice SET price = %f, discount = %f, free = %t WHERE gameid = %d AND storeid = %d`,
 			(*(*prices)[i]).Initial/100,

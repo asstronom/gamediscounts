@@ -86,8 +86,8 @@ func GetAppsPrice(appids *[]int, cc string) (*[]*PriceOverview, error) {
 		steamapps += "," + strconv.Itoa((*appids)[i])
 	}
 	steamapiLink := fmt.Sprintf("http://store.steampowered.com/api/appdetails?appids=%s&cc=%s&filters=price_overview", steamapps, cc)
-	fmt.Println(steamapiLink)
-	fmt.Println(appids)
+	//fmt.Println(steamapiLink)
+	//fmt.Println(appids)
 	resp, err := http.Get(steamapiLink)
 	if err != nil {
 		return nil, err
@@ -102,7 +102,7 @@ func GetAppsPrice(appids *[]int, cc string) (*[]*PriceOverview, error) {
 
 	for i := 0; i < len(*appids); i++ {
 		temp, err := extractPriceOverview(&body, (*appids)[i])
-		fmt.Println(i, temp)
+		//fmt.Println(i, temp)
 		if err != nil {
 			if err.Error() != fmt.Sprintf("Invalid appid: %d", (*appids)[i]) ||
 				err.Error() != fmt.Sprintf("Game may be free or has different pay methods. Appid: %d", (*appids)[i]) {
