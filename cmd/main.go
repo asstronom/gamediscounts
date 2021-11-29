@@ -24,7 +24,7 @@ const (
 	dbname   = "gamediscounts"
 )
 // Get this package if it's missing.
-//  go get -u github.com/lib/pq
+// go get -u github.com/lib/p/ go get -u github.com/lib/pq
 
 func run() {
 	fmt.Println("connecting")
