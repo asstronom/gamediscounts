@@ -1,14 +1,14 @@
 package main
 
 import (
-
 	"context"
 
 	"fmt"
-	"github.com/gamediscounts/db/postgres"
-	"github.com/gamediscounts/server"
 	"net/http"
 	"time"
+
+	"github.com/gamediscounts/db/postgres"
+	"github.com/gamediscounts/server"
 
 	//"io/ioutil"
 	"log"
@@ -19,12 +19,13 @@ import (
 )
 
 const (
-	host     = "postgres"
+	host     = "localhost"
 	port     = 5432
 	username = "user"
 	password = "mypassword"
 	dbname   = "gamediscounts"
 )
+
 // Get this package if it's missing.
 // go get -u github.com/lib/p/ go get -u github.com/lib/pq
 
@@ -79,25 +80,32 @@ func run() error {
 
 func main() {
 
-	err := run()
+	// //err := run()
+	// if err != nil {
+	// 	log.Fatalln(err)
+	// }
+	fmt.Println("connecting")
+	// these details match the docker-compose.yml file.
+	postgresInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
+		host, port, username, password, dbname)
+	db, err := postgres.Open(postgresInfo) // dummy DB for test
+
 	if err != nil {
 		log.Fatalln(err)
 	}
-	var solvedata *postgres.SolveDB // dummy DB for test
 
-	ctx:= context.Background()
-	s:= server.Init(ctx,solvedata)
-	addr:=":8080"
+	ctx := context.Background()
+	s := server.Init(ctx, db)
+	addr := ":8080"
 
-	httpServer:= &http.Server{
-		Addr: addr,
-		Handler: s,
-		ReadTimeout: 10 * time.Second,
+	httpServer := &http.Server{
+		Addr:         addr,
+		Handler:      s,
+		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 10 * time.Second,
 	}
-	fmt.Printf("staring web server on %s",addr)
-	if err := httpServer.ListenAndServe(); err!=nil{
-		log.Fatalln( err)
+	fmt.Printf("staring web server on %s", addr)
+	if err := httpServer.ListenAndServe(); err != nil {
+		log.Fatalln(err)
 	}
 }
-

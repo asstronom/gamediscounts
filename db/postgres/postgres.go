@@ -175,12 +175,7 @@ func (DB *GameDB) InitGamePrice() error {
 	}
 	//fmt.Println(len(*prices))
 	for i := 0; i < len(*prices); i++ {
-		sqlQuery = fmt.Sprintf(`UPDATE gameprice SET price = %f, discount = %f, free = %t WHERE gameid = %d AND storeid = %d`,
-			(*(*prices)[i]).Initial/100,
-			(*(*prices)[i]).Discount_percent,
-			(*(*prices)[i]).Initial == 0,
-			gameids[i],
-			steamid)
+
 
 		if (*prices)[i] == nil {
 			continue

@@ -11,10 +11,10 @@ import (
 type Server struct {
 	router  *mux.Router
 	context context.Context
-	db      *postgres.SolveDB
+	db      *postgres.GameDB
 }
 
-func Init (ctx context.Context, db *postgres.SolveDB )*Server{
+func Init (ctx context.Context, db *postgres.GameDB )*Server{
 	router := mux.NewRouter()
 	s := &Server{
 		router,
