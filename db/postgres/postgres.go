@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/gamediscounts/model/steamapi"
 	"log"
+	"strconv"
 	"time"
 )
 
@@ -17,10 +18,11 @@ type GameDB struct {
 }
 
 type GamePrice struct {
-	storegameid string
-	price       int
-	discount    int
-	isFree      bool
+	initial  float64
+	final    float64
+	discount int
+	isFree   bool
+	currency string
 }
 
 func Open(credentials string) (*GameDB, error) {
@@ -92,8 +94,8 @@ func (DB *GameDB) InitTables() error {
 }
 
 func (DB *GameDB) InitStores() error {
-	query := fmt.Sprintf(`INSERT INTO store (id, name) VALUES (%d, 'steam')`, steamid)
-	_, err := DB.Exec(query)
+	//query := fmt.Sprintf(`INSERT INTO store (id, name) VALUES (%d, 'steam')`, steamid)
+	_, err := DB.Exec(`INSERT INTO store (id, name) VALUES ($1, 'steam')`, steamid)
 	if err != nil {
 		fmt.Println("Error InitStores")
 		return err
@@ -147,7 +149,7 @@ func (DB *GameDB) InitGamePrice() error {
 		return err
 	}
 	defer rows.Close()
-	fmt.Println("Parsing rows")
+	//fmt.Println("Parsing rows")
 	// if !rows.Next() {
 	// 	log.Fatalln("FML")
 	// }
@@ -166,12 +168,12 @@ func (DB *GameDB) InitGamePrice() error {
 		steamgameids = append(steamgameids, steamgameid)
 		gameids = append(gameids, dbgameid)
 	}
-	fmt.Println("SteamIDs: ", steamgameids)
+	//fmt.Println("SteamIDs: ", steamgameids)
 	prices, err := steamapi.GetAppsPrice(&steamgameids, "ua")
 	if err != nil {
 		return err
 	}
-	fmt.Println(len(*prices))
+	//fmt.Println(len(*prices))
 	for i := 0; i < len(*prices); i++ {
 		sqlQuery = fmt.Sprintf(`UPDATE gameprice SET price = %f, discount = %f, free = %t WHERE gameid = %d AND storeid = %d`,
 			(*(*prices)[i]).Initial/100,
@@ -180,13 +182,82 @@ func (DB *GameDB) InitGamePrice() error {
 			gameids[i],
 			steamid)
 
-		_, err = DB.Exec(sqlQuery)
+		if (*prices)[i] == nil {
+			continue
+		}
+		_, err = DB.Exec(`UPDATE gameprice SET price = $1, discount = $2, free = $3, final = $6 WHERE gameid = $4 AND storeid = $5`,
+			(*(*prices)[i]).Initial/100,
+			(*(*prices)[i]).Discount_percent,
+			(*(*prices)[i]).Initial == 0,
+			gameids[i],
+			steamid,
+			(*(*prices)[i]).Final/100)
 		if err != nil {
 			return err
 		}
 	}
 
 	return nil
+}
+
+func (DB *GameDB) RefreshFeatured() error {
+	ids, prices, err := steamapi.GetFeaturedCategories("ua")
+
+	if err != nil {
+		return err
+	}
+	_, err = DB.Exec(`TRUNCATE TABLE featured`)
+
+	if err != nil {
+		return err
+	}
+
+	for i := 0; i < len(prices); i++ {
+		res := DB.QueryRow(`UPDATE gameprice SET price = $1, discount = $2, free = $3, final = $4 WHERE storegameid = $5 AND storeid = $6 RETURNING gameid`,
+			prices[i].Initial,
+			prices[i].Discount_percent,
+			prices[i].Initial == 0,
+			prices[i].Final,
+			strconv.Itoa(ids[i]),
+			steamid)
+		err = res.Err()
+		if err != nil {
+			return err
+		}
+		var curGameId int
+		err = res.Scan(&curGameId)
+		if err != nil {
+			return err
+		}
+		_, err = DB.Exec(`INSERT INTO featured(gameid, storeid) VALUES ($1, $2)`, curGameId, steamid)
+		if err != nil {
+			if err.Error() == `pq: duplicate key value violates unique constraint "featuredid"` {
+				fmt.Printf("Duplicate game in featured Steam (gameid, storegameid): %d, %d", curGameId, ids[i])
+			} else {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func (DB *GameDB) BestOffers(cc string) ([]int, []int, error) {
+	var (
+		resids    []int
+		resstores []int
+	)
+	rows, err := DB.Query(`SELECT gameid, storeid FROM featured`)
+	if err != nil {
+		return nil, nil, err
+	}
+	for i := 0; rows.Next(); i++ {
+		var curid int
+		var curstore int
+		rows.Scan(&curid, &curstore)
+		resids = append(resids, curid)
+		resstores = append(resstores, curstore)
+	}
+	return resids, resstores, nil
 }
 
 type SolveDB struct {
@@ -228,8 +299,29 @@ func (Sol *SolveDB) SolveQuery() {
 	fmt.Println("Solve", res1, res2)
 }
 
+func (DB *GameDB) GetAppPrice(gameid int, storeid int, cc string) (GamePrice, error) {
+	var res GamePrice
+	row := DB.QueryRow(`SELECT price, final, discount, free FROM gameprice WHERE gameid = $1 AND storeid = $2`, gameid, storeid)
+	if row.Err() != nil {
+		return GamePrice{}, row.Err()
+	}
+	err := row.Scan(&res.initial, &res.final, &res.discount, &res.isFree)
+	res.currency = "UAH"
+	if err != nil {
+		return GamePrice{}, err
+	}
+	return res, nil
+}
 
-
-func GetAppPrice(gamename string, storename string) int {
-	return 0
+func (DB *GameDB) GetGameName(gameid int) (string, error) {
+	var res string
+	row := DB.QueryRow(`SELECT name FROM game WHERE id = $1`, gameid)
+	if row.Err() != nil {
+		return "", row.Err()
+	}
+	err := row.Scan(&res)
+	if err != nil {
+		return "", err
+	}
+	return res, nil
 }
