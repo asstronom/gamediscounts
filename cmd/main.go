@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"github.com/gamediscounts/db/postgres"
 	"github.com/gamediscounts/server"
@@ -24,9 +23,8 @@ const (
 	password = "mypassword"
 	dbname   = "gamediscounts"
 )
-
 // Get this package if it's missing.
-// go get -u github.com/lib/p/ go get -u github.com/lib/pq
+//  go get -u github.com/lib/pq
 
 func run() {
 	fmt.Println("connecting")
@@ -88,7 +86,7 @@ func run() {
 }
 
 func main() {
-	postgresInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", host, port, username, password, dbname)
+	/*postgresInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", host, port, username, password, dbname)
 	db, err := sql.Open("postgres", postgresInfo)
 
 	if err != nil {
@@ -134,7 +132,8 @@ func main() {
 
 	if err != nil {
 		log.Fatalln(err)
-	}
+	}*/
+	var solvedata *postgres.SolveDB // dummy DB for test
 
 	ctx:= context.Background()
 	s:= server.Init(ctx,solvedata)
