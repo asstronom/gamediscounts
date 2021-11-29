@@ -29,6 +29,7 @@ func run() error {
 	// these details match the docker-compose.yml file.
 	postgresInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
 		host, port, username, password, dbname)
+
 	db, err := postgres.Open(postgresInfo)
 
 	if err != nil {
@@ -100,10 +101,76 @@ func TestGetFeaturedCategories() error {
 	return nil
 }
 
+func TestRefreshFeaturedCategories() error {
+	postgresInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
+		host, port, username, password, dbname)
+	db, err := postgres.Open(postgresInfo)
+	if err != nil {
+		return err
+	}
+	err = db.RefreshFeatured()
+	if err != nil {
+		log.Fatalln(err)
+	}
+	return nil
+}
+
+func TestGetBestPrice() error {
+	postgresInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
+		host, port, username, password, dbname)
+	db, err := postgres.Open(postgresInfo)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(db.BestOffers("ua"))
+	return nil
+}
+
+func TestGetAppPriceDB() error {
+	fmt.Println("TestGetAppPriceDB")
+	postgresInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
+		host, port, username, password, dbname)
+	db, err := postgres.Open(postgresInfo)
+	if err != nil {
+		return err
+	}
+	resid, resstores, err := db.BestOffers("ua")
+	if err != nil {
+		return err
+	}
+	for i := 0; i < len(resid); i++ {
+		fmt.Println(db.GetAppPrice(resid[i], resstores[i], "ua"))
+	}
+	return nil
+}
+
+func TestTGetGameName() error {
+	fmt.Println("TestGetGameName")
+	postgresInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
+		host, port, username, password, dbname)
+	db, err := postgres.Open(postgresInfo)
+	if err != nil {
+		return err
+	}
+	resid, _, err := db.BestOffers("ua")
+	if err != nil {
+		return err
+	}
+	for i := 0; i < len(resid); i++ {
+		fmt.Println(db.GetGameName(resid[i]))
+	}
+	return nil
+}
+
 func RunTests() error {
 	TestGetAppPrice()
 	TestGetAppsPrice()
 	TestGetFeaturedCategories()
+	TestRefreshFeaturedCategories()
+	TestGetBestPrice()
+	TestGetAppPriceDB()
+	TestTGetGameName()
 	return nil
 }
 func main() {
