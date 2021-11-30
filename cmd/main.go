@@ -42,21 +42,21 @@ func run() error {
 
 	defer db.Close()
 
-	// err = db.InitTables()
+	err = db.InitTables()
 
-	// if err != nil {
-	// 	return err
-	// }
+	 if err != nil {
+	 	return err
+	 }
 
-	// err = db.InitStores()
-	// if err != nil {
-	// 	return err
-	// }
+	 err = db.InitStores()
+	 if err != nil {
+	 	return err
+	 }
 
-	// err = db.InitGames()
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
+	 err = db.InitGames()
+	 if err != nil {
+	 	log.Fatal(err)
+	 }
 
 	fmt.Println("Initializing")
 	err = db.InitGamePrice()
@@ -80,10 +80,10 @@ func run() error {
 
 func main() {
 
-	// //err := run()
-	// if err != nil {
-	// 	log.Fatalln(err)
-	// }
+	err := run()
+	if err != nil {
+	 	log.Fatalln(err)
+	}
 	fmt.Println("connecting")
 	// these details match the docker-compose.yml file.
 	postgresInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",

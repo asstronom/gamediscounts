@@ -176,7 +176,6 @@ func (DB *GameDB) InitGamePrice() error {
 	//fmt.Println(len(*prices))
 	for i := 0; i < len(*prices); i++ {
 
-
 		if (*prices)[i] == nil {
 			continue
 		}

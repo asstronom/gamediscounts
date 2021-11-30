@@ -24,7 +24,7 @@ func (s *Server) HandleSingleGame() http.HandlerFunc{
 		idint, _  := strconv.Atoi(id)
 		name, err := s.db.GetGameName(idint)
 		if err != nil {
-			log.Fatalln(err)	
+			log.Println(err)
 		}
 		//fmt.Println(vars) // just for debug
 		s.respond(w, r,map[string]interface{}{
