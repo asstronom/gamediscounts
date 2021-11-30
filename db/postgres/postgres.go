@@ -138,7 +138,7 @@ func (DB *GameDB) InitTables() error {
 
 	_, err = DB.Exec(`CREATE TABLE featured (
 		gameid INT REFERENCES game (id) ON UPDATE CASCADE ON DELETE CASCADE,
-		storeid INT REFERENCES game (id) ON UPDATE CASCADE ON DELETE CASCADE
+		storeid INT REFERENCES store (id) ON UPDATE CASCADE ON DELETE CASCADE)
 		`)
 	if err != nil {
 		return err

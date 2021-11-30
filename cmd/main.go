@@ -33,7 +33,7 @@ func initdb() error {
 	fmt.Println("connecting")
 	// these details match the docker-compose.yml file.
 	postgresInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
-		host, port, username, password, dbname)
+		host, port, username, password, "pudgediscounts")
 	db, err := postgres.Open(postgresInfo)
 
 	if err != nil {
@@ -47,6 +47,8 @@ func initdb() error {
 	if err != nil {
 		return err
 	}
+
+	fmt.Println("Inited tables")
 
 	err = db.InitStores()
 	if err != nil {
@@ -101,10 +103,10 @@ func run() error {
 
 func main() {
 
-	// errInit := initdb()
-	// if errInit != nil {
-	// 	log.Fatalln(errInit)
-	// }
+	errInit := initdb()
+	if errInit != nil {
+		log.Fatalln(errInit)
+	}
 
 	err := run()
 	if err != nil {
