@@ -29,6 +29,43 @@ const (
 // Get this package if it's missing.
 // go get -u github.com/lib/p/ go get -u github.com/lib/pq
 
+func initdb() error {
+	fmt.Println("connecting")
+	// these details match the docker-compose.yml file.
+	postgresInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
+		host, port, username, password, dbname)
+	db, err := postgres.Open(postgresInfo)
+
+	if err != nil {
+		return err
+	}
+
+	defer db.Close()
+
+	err = db.InitTables()
+
+	if err != nil {
+		return err
+	}
+
+	err = db.InitStores()
+	if err != nil {
+		return err
+	}
+
+	err = db.InitGames()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println("Initializing")
+	err = db.InitGamePrice()
+	if err != nil {
+		log.Fatal(err)
+	}
+	return err
+}
+
 func run() error {
 	fmt.Println("connecting")
 	// these details match the docker-compose.yml file.
@@ -42,48 +79,37 @@ func run() error {
 
 	defer db.Close()
 
-	// err = db.InitTables()
-
-	// if err != nil {
-	// 	return err
-	// }
-
-	// err = db.InitStores()
-	// if err != nil {
-	// 	return err
-	// }
-
-	// err = db.InitGames()
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-
-	fmt.Println("Initializing")
-	err = db.InitGamePrice()
+	err = db.RefreshFeatured()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalln(err)
 	}
-	//sqlQuery := fmt.Sprintf(`INSERT INTO game(name) VALUES ('%s')`, res[0].Get("name").Value())
-	//_, err = db.Exec(sqlQuery)
 
-	// if err != nil {
-	// 	log.Fatalln(err)
-	// }
+	res, err := db.BestOffers(0, 8, postgres.UA)
+	if err != nil {
+		log.Fatalln()
+	}
 
-	// _, err = db.Exec(`CREATE TABLE COMPANY (ID INT PRIMARY KEY NOT NULL, NAME text);`)
-	// if err != nil {
-	// 	panic(err)
-	// }
-	//fmt.Println("table company is created")
+	res1, err := db.GetGame(8283, postgres.UA)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	fmt.Println(res)
+	fmt.Println(res1)
+
 	return nil
 }
 
 func main() {
 
-	// //err := run()
-	// if err != nil {
-	// 	log.Fatalln(err)
+	// errInit := initdb()
+	// if errInit != nil {
+	// 	log.Fatalln(errInit)
 	// }
+
+	err := run()
+	if err != nil {
+		log.Fatalln(err)
+	}
 	fmt.Println("connecting")
 	// these details match the docker-compose.yml file.
 	postgresInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
