@@ -96,6 +96,7 @@ func run() error {
 		log.Fatalln(err)
 	}
 	fmt.Println(res)
+	fmt.Println(len(res))
 	fmt.Println(res1)
 
 	return nil
