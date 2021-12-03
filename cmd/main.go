@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"time"
 
+	wishlist "github.com/gamediscounts/db/neo4j"
 	"github.com/gamediscounts/db/postgres"
 	"github.com/gamediscounts/server"
 
@@ -24,6 +25,10 @@ const (
 	username = "user"
 	password = "mypassword"
 	dbname   = "gamediscounts"
+
+	wishlistURI  = "neo4j://localhost:7687"
+	wishUsername = "neo4j"
+	wishPassword = "GuesgP4LPLS"
 )
 
 // Get this package if it's missing.
@@ -103,15 +108,45 @@ func run() error {
 
 func main() {
 
-	errInit := initdb()
-	if errInit != nil {
-		log.Fatalln(errInit)
+	// errInit := initdb()
+	// if errInit != nil {
+	// 	log.Fatalln(errInit)
+	// }
+
+	wishlistDB, er := wishlist.OpenDB(wishlistURI, wishUsername, wishPassword)
+
+	if er != nil {
+		log.Fatalln(er)
 	}
 
-	err := run()
-	if err != nil {
-		log.Fatalln(err)
+	er = wishlistDB.Clear()
+
+	if er != nil {
+		log.Fatalln(er)
 	}
+
+	er = wishlistDB.AddUser("pudgebooster")
+
+	if er != nil {
+		log.Fatalln(er)
+	}
+
+	er = wishlistDB.AddGame(620)
+
+	if er != nil {
+		log.Fatalln(er)
+	}
+
+	er = wishlistDB.AddGameToWishList("pudgebooster", 620)
+
+	if er != nil {
+		log.Fatalln(er)
+	}
+
+	// //err := run()
+	// if err != nil {
+	// 	log.Fatalln(err)
+	// }
 	fmt.Println("connecting")
 	// these details match the docker-compose.yml file.
 	postgresInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
