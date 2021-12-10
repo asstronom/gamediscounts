@@ -59,7 +59,7 @@ func SignIn ( w http.ResponseWriter , r *http.Request){
 		log.Println(err)
 		w.WriteHeader(http.StatusUnauthorized)
 		_ = json.NewEncoder(w).Encode(map[string]interface{}{
-			"message":"wrong username of password"})
+			"message":"wrong username or password"})
 		return
 	}
 	_ = json.NewEncoder(w).Encode(map[string]interface{}{
