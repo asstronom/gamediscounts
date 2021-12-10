@@ -17,6 +17,26 @@ services:
     volumes: 
       - dbdata:/var/lib/postgresql/data
 
+  neo4j:
+    container_name: neo4j_wishlist
+    image: neo4j:latest
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    volumes:
+      - dbdata:/var/lib/neo4j/data
+
+  couchdb:
+    container_name: couch_userdb
+    image: couchdb:latest
+    environment:
+      - COUCHDB_USER=couchdb
+      - COUCHDB_PASSWORD=couchdb
+    ports:
+      - '5984:5984'
+    volumes:
+      - dbdata:/var/lib/couchdb/data
+
   go:
     container_name: go
     # build the Dockerfile, alternatively use an image.
@@ -24,7 +44,10 @@ services:
       context: .
     depends_on:
       - "postgres"
+      - "neo4j"
+      - "couchdb"
 
 volumes:
-  dbdata: # create the volume for persisting data.
+  dbdata:
+    driver: local
             
