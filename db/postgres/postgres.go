@@ -130,7 +130,8 @@ func (DB *GameDB) InitTables() error {
 		CONSTRAINT gamePriceId PRIMARY KEY (gameid, storeid),
 		storegameid VARCHAR(255) UNIQUE,
 		price NUMERIC,
-		discount INT DEFAULT 0, 
+		discount INT DEFAULT 0,
+		final NUMERIC, 
 		free BOOLEAN DEFAULT FALSE)`)
 	if err != nil {
 		return err

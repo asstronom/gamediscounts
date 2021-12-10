@@ -83,21 +83,21 @@ func run() error {
 
 	err = db.RefreshFeatured()
 	if err != nil {
-		log.Fatalln(err)
+		log.Println(err)
 	}
 
-	res, err := db.BestOffers(0, 8, postgres.UA)
-	if err != nil {
-		log.Fatalln()
-	}
-
-	res1, err := db.GetGame(126074, postgres.UA)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	fmt.Println(res)
-	fmt.Println(len(res))
-	fmt.Println(res1)
+	//res, err := db.BestOffers(0, 8, postgres.UA)
+	//if err != nil {
+	//	log.Fatalln()
+	//}
+	//
+	//res1, err := db.GetGame(126074, postgres.UA)
+	//if err != nil {
+	//	log.Fatalln(err)
+	//}
+	//fmt.Println(res)
+	//fmt.Println(len(res))
+	//fmt.Println(res1)
 
 	return nil
 }
@@ -133,7 +133,7 @@ func main() {
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 10 * time.Second,
 	}
-	fmt.Printf("staring web server on %s", addr)
+	fmt.Printf("staring web server on %s\n", addr)
 	if err := httpServer.ListenAndServe(); err != nil {
 		log.Fatalln(err)
 	}

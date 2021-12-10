@@ -37,14 +37,12 @@ func (s *Server) HandleSingleGame() http.HandlerFunc{
 		vars := mux.Vars(r)
 		id:= vars["id"]
 		idint, _  := strconv.Atoi(id)
-		name, err := s.db.GetGameName(idint)
+		game, err := s.db.GetGame(idint, postgres.UA)
 		if err != nil {
 			log.Println(err)
 		}
 		//fmt.Println(vars) // just for debug
-		s.respond(w, r,map[string]interface{}{
-			"app":name,
-		},http.StatusOK)
+		s.respond(w, r,game,http.StatusOK)
 	}
 }
 
