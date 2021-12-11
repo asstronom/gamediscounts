@@ -55,7 +55,7 @@ func SignIn ( w http.ResponseWriter , r *http.Request){
 			"message":"some of filled values is not valid"})
 		return
 	}
-	if err = bcrypt.CompareHashAndPassword([]byte(DB[creds.Username]), []byte(creds.Password)); err != nil {
+	if err = bcrypt.CompareHashAndPassword([]byte(DB[creds.Username]), []byte(creds.Password)); err != nil { // replace map with DB
 		log.Println(err)
 		w.WriteHeader(http.StatusUnauthorized)
 		_ = json.NewEncoder(w).Encode(map[string]interface{}{
