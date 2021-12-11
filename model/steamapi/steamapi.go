@@ -11,10 +11,10 @@ import (
 )
 
 type PriceOverview struct {
-	Initial          float64
-	Final            float64
-	Discount_percent float64
-	Currency         string
+	Initial         float64
+	Final           float64
+	DiscountPercent float64
+	Currency        string
 }
 
 func GetAppList() []gjson.Result {
