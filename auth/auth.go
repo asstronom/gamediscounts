@@ -4,17 +4,19 @@ import (
 	"encoding/json"
 	"fmt"
 	userdb "github.com/gamediscounts/db/couchdb"
-	_ "github.com/golang-jwt/jwt"
+	"github.com/golang-jwt/jwt"
 	"github.com/leesper/couchdb-golang"
 	"golang.org/x/crypto/bcrypt"
 	"log"
 	"net/http"
 	"strings"
+	"time"
 )
 
 const (
 	userDatabaseURL  = "http://couchdb:couchdb@localhost:5984"
 	userDatabaseName = "gamediscounts"
+	jwtKey           = "sheesh"
 )
 
 //var DB = map[string]string{}
@@ -23,6 +25,10 @@ type Credentials struct {
 	Email    string `json:"email"`
 	Username string `json:"username"`
 	Password string `json:"password"`
+}
+type Claims struct {
+	Username string `json:"username"`
+	jwt.StandardClaims
 }
 
 func SignUp(w http.ResponseWriter, r *http.Request) {
@@ -107,10 +113,70 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 			"message": "wrong username or password"})
 		return
 	}
+	expirationTime := time.Now().Add(5 * time.Minute)
+	claims := &Claims{
+		Username: creds.Username,
+		StandardClaims: jwt.StandardClaims{
+			// In JWT, the expiry time is expressed as unix milliseconds
+			ExpiresAt: expirationTime.Unix(),
+		},
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	// Create the JWT string
+	tokenString, err := token.SignedString([]byte("sheesh"))
+	if err != nil {
+		log.Println(err)
+		// If there is an error in creating the JWT return an internal server error
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	http.SetCookie(w, &http.Cookie{
+		Name:    "token",
+		Value:   tokenString,
+		Expires: expirationTime,
+	})
+	fmt.Println(tokenString)
 	_ = json.NewEncoder(w).Encode(map[string]interface{}{
 		"message": "Welcome",
 	})
 
-	//TODO
-	//add JW Token
+}
+
+func IsAuthorized(endpoint func(http.ResponseWriter, *http.Request)) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		c, err := r.Cookie("token")
+		if err != nil {
+			if err == http.ErrNoCookie {
+				log.Println(err)
+				// If the cookie is not set, return an unauthorized status
+				w.WriteHeader(http.StatusUnauthorized)
+				return
+			}
+			log.Println(err)
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		claims := &Claims{}
+		tknStr := c.Value
+		tkn, err := jwt.ParseWithClaims(tknStr, claims, func(token *jwt.Token) (interface{}, error) {
+			return []byte(jwtKey), nil
+		})
+		if err != nil {
+			log.Println(err)
+			if err == jwt.ErrSignatureInvalid {
+				log.Println(err)
+				w.WriteHeader(http.StatusUnauthorized)
+				return
+			}
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		if !tkn.Valid {
+			log.Println("Token is not valid")
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		} else {
+			endpoint(w, r)
+		}
+	}
 }
