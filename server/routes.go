@@ -9,10 +9,9 @@ func (s *Server) routes() {
 	//wishlish
 	s.router.HandleFunc("/wishlist/{id}", auth.IsAuthorized()).Methods("PUT")
 	s.router.HandleFunc("/wishlist/", auth.IsAuthorized()).Methods("GET")
-	
+
 	//auth
 	s.router.HandleFunc("/register", auth.SignUp).Methods("POST")
 	s.router.HandleFunc("/login", auth.SignIn).Methods("POST")
-	//  /wishilist/:id PUT
-	//  /wishilist/:
+	s.router.HandleFunc("/refresh", auth.Refresh).Methods("GET")
 }
