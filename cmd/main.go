@@ -2,8 +2,9 @@ package main
 
 import (
 	"context"
-
 	"fmt"
+	userdb "github.com/gamediscounts/db/couchdb"
+	wishlist "github.com/gamediscounts/db/neo4j"
 	"net/http"
 	"time"
 
@@ -106,31 +107,31 @@ func run() error {
 }
 
 func main() {
-
-	// errInit := initdb()
+	//
+	//errInit := initdb()
 	// if errInit != nil {
 	// 	log.Fatalln(errInit)
-	// }
+	//}
 
-	//wishlistDB, er := wishlist.OpenDB(wishlistURI, wishUsername, wishPassword)
+	wishlistDB, er := wishlist.OpenDB(wishlistURI, wishUsername, wishPassword)
+
+	if er != nil {
+		log.Fatalln(er)
+	}
+
+	//wishlistDB.Clear()
+
+	//er = wishlistDB.AddUser("pudgebooster")
 	//
 	//if er != nil {
 	//	log.Fatalln(er)
 	//}
-
-	//wishlistDB.Clear()
-
-	// er = wishlistDB.AddUser("pudgebooster")
-
-	// if er != nil {
-	// 	log.Fatalln(er)
-	// }
-
-	// er = wishlistDB.AddGame(620)
-
-	// if er != nil {
-	// 	log.Fatalln(er)
-	// }
+	//
+	//er = wishlistDB.AddGame(620)
+	//
+	//if er != nil {
+	//	log.Fatalln(er)
+	//}
 
 	//er = wishlistDB.AddGameToWishList("pudgebooster", 620)
 	//
@@ -164,15 +165,15 @@ func main() {
 	//
 	//fmt.Println(wishlistDB.GetWishlist("asstronom"))
 	//
-	//// //err := run()
-	//// if err != nil {
-	//// 	log.Fatalln(err)
-	//// }
-	//userDB, e := userdb.OpenDB("http://couchdb:couchdb@localhost:5984", "gamediscounts")
-	//if e != nil {
-	//	fmt.Println("Wrong")
-	//	log.Fatalln(e)
-	//}
+	err := run()
+	if err != nil {
+		log.Fatalln(err)
+	}
+	userDB, e := userdb.OpenDB("http://couchdb:couchdb@localhost:5984", "gamediscounts")
+	if e != nil {
+		fmt.Println("Wrong")
+		log.Fatalln(e)
+	}
 	//
 	//user := userdb.User{userdb.Credentials{"asstronom", "sdla'w;ldsf"}, "danya.live", "gmail.com", false, false, false, couchdb.Document{}}
 	//if e != nil {
@@ -213,7 +214,7 @@ func main() {
 	}
 
 	ctx := context.Background()
-	s := server.Init(ctx, db)
+	s := server.Init(ctx, db, &userDB, wishlistDB)
 	addr := ":8080"
 
 	httpServer := &http.Server{

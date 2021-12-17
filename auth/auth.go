@@ -141,7 +141,19 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 	})
 
 }
+func GetTokenUsername(r *http.Request) (string, error) {
+	c, err := r.Cookie("token")
+	if err != nil {
+		log.Println(err)
+	}
+	claims := &Claims{}
+	tknStr := c.Value
 
+	_, err = jwt.ParseWithClaims(tknStr, claims, func(token *jwt.Token) (interface{}, error) {
+		return []byte(jwtKey), nil
+	})
+	return claims.Username, err
+}
 func IsAuthorized(endpoint func(http.ResponseWriter, *http.Request)) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		c, err := r.Cookie("token")
@@ -176,6 +188,7 @@ func IsAuthorized(endpoint func(http.ResponseWriter, *http.Request)) http.Handle
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		} else {
+			fmt.Println("userName:", claims.Username)
 			endpoint(w, r)
 		}
 	}
@@ -193,7 +206,7 @@ func Refresh(w http.ResponseWriter, r *http.Request) {
 	tknStr := c.Value
 	claims := &Claims{}
 	tkn, err := jwt.ParseWithClaims(tknStr, claims, func(token *jwt.Token) (interface{}, error) {
-		return jwtKey, nil
+		return []byte(jwtKey), nil
 	})
 	if !tkn.Valid {
 		w.WriteHeader(http.StatusUnauthorized)

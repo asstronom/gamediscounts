@@ -6,6 +6,12 @@ import (
 	"github.com/neo4j/neo4j-go-driver/v4/neo4j"
 )
 
+const (
+	WishlistURI  = "neo4j://localhost:7687"
+	WishUsername = "neo4j"
+	WishPassword = "GuesgP4LPLS"
+)
+
 type WishlistDB struct {
 	db neo4j.Driver
 }
