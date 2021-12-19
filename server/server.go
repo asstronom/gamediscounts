@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/gamediscounts/db/postgres"
 	"github.com/gorilla/mux"
 	"net/http"
@@ -29,9 +30,12 @@ func (s *Server) respond(w http.ResponseWriter, r *http.Request, data interface{
 	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(status)
 	if data != nil{
-		err:=json.NewEncoder(w).Encode(data)
+		dataJSON,_ := json.Marshal(data)
+		//lol := string(dataJSON) // lol:)
+		fmt.Println(string(dataJSON)) // for debugging
+		err:=json.NewEncoder(w).Encode(string(dataJSON))
 		if err != nil{
-			//
+
 		}
 	}
 }

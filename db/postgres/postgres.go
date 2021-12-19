@@ -48,22 +48,22 @@ type GameDB struct {
 }
 
 type GamePrice struct {
-	gameid   int
-	storeid  int
-	initial  float64
-	final    float64
-	discount int
-	isFree   bool
-	currency string
+	Gameid  int     `json:"gameid"`
+	Storeid int     `json:"storeid"`
+	Initial  float64 `json:"initial"`
+	Final    float64 `json:"final"`
+	Discount int    `json:"discount"`
+	IsFree   bool   `json:"is_free"`
+	Currency string `json:"currency"`
 }
 
 type Game struct {
-	name        string
-	id          int
-	price       []GamePrice
-	description string
-	imageURL    string
-	genres      []string
+	Name        string      `json:"name"`
+	Id          int         `json:"id"`
+	Price       []GamePrice `json:"price"`
+	Description string      `json:"description"`
+	ImageURL    string      `json:"image_url"`
+	Genres      []string    `json:"genres"`
 }
 
 func Open(credentials string) (*GameDB, error) {
@@ -130,7 +130,8 @@ func (DB *GameDB) InitTables() error {
 		CONSTRAINT gamePriceId PRIMARY KEY (gameid, storeid),
 		storegameid VARCHAR(255) UNIQUE,
 		price NUMERIC,
-		discount INT DEFAULT 0, 
+		discount INT DEFAULT 0,
+		final NUMERIC, 
 		free BOOLEAN DEFAULT FALSE)`)
 	if err != nil {
 		return err
@@ -328,11 +329,11 @@ func (DB *GameDB) BestOffers(start int, count int, country Country) ([]GamePrice
 			return nil, err
 		}
 		temp := GamePrice{}
-		err = row.Scan(&temp.gameid, &temp.storeid, &temp.initial, &temp.final, &temp.discount, &temp.isFree)
+		err = row.Scan(&temp.Gameid, &temp.Storeid, &temp.Initial, &temp.Final, &temp.Discount, &temp.IsFree)
 		if err != nil {
 			return nil, err
 		}
-		temp.currency = country.Currency()
+		temp.Currency = country.Currency()
 		res = append(res, temp)
 	}
 	return res, nil
@@ -344,8 +345,8 @@ func (DB *GameDB) GetAppPrice(gameid int, storeid int, country Country) (GamePri
 	if row.Err() != nil {
 		return GamePrice{}, row.Err()
 	}
-	err := row.Scan(&res.gameid, &res.storeid, &res.initial, &res.final, &res.discount, &res.isFree)
-	res.currency = country.Currency()
+	err := row.Scan(&res.Gameid, &res.Storeid, &res.Initial, &res.Final, &res.Discount, &res.IsFree)
+	res.Currency = country.Currency()
 	if err != nil {
 		return GamePrice{}, err
 	}
@@ -371,7 +372,7 @@ func (DB *GameDB) GetGame(gameid int, country Country) (Game, error) {
 	if row.Err() != nil {
 		return Game{}, row.Err()
 	}
-	err := row.Scan(&res.name, &res.id)
+	err := row.Scan(&res.Name, &res.Id)
 	if err != nil {
 		return Game{}, err
 	}
@@ -380,7 +381,7 @@ func (DB *GameDB) GetGame(gameid int, country Country) (Game, error) {
 		if err != nil {
 			//return Game{}, err
 		}
-		res.price = append(res.price, temp)
+		res.Price = append(res.Price, temp)
 	}
 	return res, nil
 }

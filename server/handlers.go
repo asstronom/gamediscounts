@@ -1,6 +1,8 @@
 package server
 
 import (
+	"fmt"
+	"github.com/gamediscounts/db/postgres"
 	"log"
 	"net/http"
 	"strconv"
@@ -11,9 +13,22 @@ import (
 func (s *Server) HandleIndex() http.HandlerFunc {
 
 	return func (w http.ResponseWriter, r *http.Request){
-		s.respond(w,r,map[string]interface{}{
-			"message":"hello",
-		},http.StatusOK)
+		values := r.URL.Query()
+		fmt.Println(values)
+		start, err := strconv.Atoi(values.Get("start"))
+		if err != nil {
+			log.Println(err)
+		}
+		count, err := strconv.Atoi(values.Get("count"))
+		if err != nil {
+			log.Println(err)
+		}
+		offers, err := s.db.BestOffers(start,count,postgres.UA)
+		fmt.Println(len(offers)) //check len of array for debugging
+		if err != nil{
+			log.Println(err)
+		}
+		s.respond(w,r,offers,http.StatusOK)
 	}
 }
 func (s *Server) HandleSingleGame() http.HandlerFunc{
@@ -22,14 +37,12 @@ func (s *Server) HandleSingleGame() http.HandlerFunc{
 		vars := mux.Vars(r)
 		id:= vars["id"]
 		idint, _  := strconv.Atoi(id)
-		name, err := s.db.GetGameName(idint)
+		game, err := s.db.GetGame(idint, postgres.UA)
 		if err != nil {
-			log.Fatalln(err)	
+			log.Println(err)
 		}
 		//fmt.Println(vars) // just for debug
-		s.respond(w, r,map[string]interface{}{
-			"app":name,
-		},http.StatusOK)
+		s.respond(w, r,game,http.StatusOK)
 	}
 }
 
