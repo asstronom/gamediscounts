@@ -193,57 +193,66 @@ func (DB *GameDB) InitGames() error {
 }
 
 func (DB *GameDB) InitGamePrice() error {
-	gameids := []int{}
-	steamgameids := []int{}
+
 	sqlQuery := "SELECT storegameid, gameid FROM gameprice"
 	//var temp *sql.DB = DB.PgDb
 	rows, err := DB.Query(sqlQuery)
 	if err != nil {
 		return err
 	}
+	sqlQuery = "SELECT COUNT(*) FROM game"
+	counterRow := DB.QueryRow(sqlQuery)
+	gamecounter := 0
+	counterRow.Scan(&gamecounter)
 	defer rows.Close()
-	//fmt.Println("Parsing rows")
-	// if !rows.Next() {
-	// 	log.Fatalln("FML")
-	// }
-	// var res1 int
-	// var res2 int
-
-	// rows.Scan(&res1, &res2)
-
-	for i := 0; rows.Next() && i < 250; i++ {
-		//fmt.Printf("EZ")
-		var steamgameid int
-		var dbgameid int
-		if err := rows.Scan(&steamgameid, &dbgameid); err != nil {
-			return err
+	progressCounter := 0
+	for {
+		gameids := []int{}
+		steamgameids := []int{}
+		fmt.Println(progressCounter)
+		for i := 0; rows.Next() && i < 250; i++ {
+			var steamgameid int
+			var dbgameid int
+			if err := rows.Scan(&steamgameid, &dbgameid); err != nil {
+				return err
+			}
+			steamgameids = append(steamgameids, steamgameid)
+			gameids = append(gameids, dbgameid)
 		}
-		steamgameids = append(steamgameids, steamgameid)
-		gameids = append(gameids, dbgameid)
-	}
-	//fmt.Println("SteamIDs: ", steamgameids)
-	prices, err := steamapi.GetAppsPrice(&steamgameids, "ua")
-	if err != nil {
-		return err
-	}
-	//fmt.Println(len(*prices))
-	for i := 0; i < len(*prices); i++ {
-
-		if (*prices)[i] == nil {
-			continue
+		if (len(steamgameids)) == 0 {
+			break
 		}
-		_, err = DB.Exec(`UPDATE gameprice SET price = $1, discount = $2, free = $3, final = $6 WHERE gameid = $4 AND storeid = $5`,
-			(*(*prices)[i]).Initial/100,
-			(*(*prices)[i]).Discount_percent,
-			(*(*prices)[i]).Initial == 0,
-			gameids[i],
-			SteamID,
-			(*(*prices)[i]).Final/100)
+		prices, err := steamapi.GetAppsPrice(&steamgameids, "ua")
 		if err != nil {
 			return err
 		}
-	}
+		for i := 0; i < len(*prices); i++ {
+			progressCounter++
+			if len(*prices) == 0 {
+				break
+			}
 
+			if (*prices)[i] == nil {
+				continue
+			}
+			_, err = DB.Exec(`UPDATE gameprice SET price = $1, discount = $2, free = $3, final = $6, correct = $7 WHERE gameid = $4 AND storeid = $5`,
+				(*(*prices)[i]).Initial/100,
+				(*(*prices)[i]).Discount_percent,
+				false,
+				gameids[i],
+				SteamID,
+				(*(*prices)[i]).Final/100,
+				true)
+
+			if err != nil {
+				return err
+			}
+
+		}
+	}
+	if rows.Err() != nil {
+		return rows.Err()
+	}
 	return nil
 }
 
@@ -289,7 +298,6 @@ func (DB *GameDB) RefreshFeatured() error {
 }
 
 func (DB *GameDB) BestOffers(start int, count int, country Country) ([]GamePrice, error) {
-	//cc := country.CountryCode()
 	type featuredid struct {
 		gameid  int
 		storeid int
@@ -329,45 +337,6 @@ func (DB *GameDB) BestOffers(start int, count int, country Country) ([]GamePrice
 	}
 	return res, nil
 }
-
-// type SolveDB struct {
-// 	*sql.DB
-// }
-
-// func OpenSolve(credentials string) (*SolveDB, error) {
-// 	db, err := sql.Open("postgres", credentials)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	start := time.Now()
-// 	for db.Ping() != nil {
-// 		if start.After(start.Add(10 * time.Second)) {
-// 			return nil, err
-// 		}
-// 	}
-// 	fmt.Println("connected:", db.Ping() == nil)
-// 	database := &SolveDB{db}
-// 	return database, nil
-// }
-
-// func (Sol *SolveDB) SolveQuery() {
-// 	var res1 int
-// 	var res2 int
-
-// 	rows, err := Sol.Query("SELECT storegameid, gameid FROM gameprice")
-// 	if err != nil {
-// 		log.Fatalln(err)
-// 	}
-// 	if !rows.Next() {
-// 		log.Fatalln("Solve rows closed")
-// 	}
-// 	err = rows.Scan(&res1, &res2)
-// 	if err != nil {
-// 		log.Fatalln(err)
-// 	}
-// 	fmt.Println("Solve", res1, res2)
-// }
 
 func (DB *GameDB) GetAppPrice(gameid int, storeid int, country Country) (GamePrice, error) {
 	var res GamePrice

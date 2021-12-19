@@ -6,20 +6,89 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 
+	"github.com/microcosm-cc/bluemonday"
 	"github.com/tidwall/gjson"
 )
+
+var (
+	tagsPolicy *bluemonday.Policy = bluemonday.StrictPolicy()
+)
+
+type AppType int64
+
+var (
+	Game        AppType = 0
+	Dlc         AppType = 1
+	Music       AppType = 2
+	Demo        AppType = 3
+	Advertising AppType = 4
+	Mod         AppType = 5
+	Video       AppType = 6
+	Unknown     AppType = 7
+)
+
+func (appType AppType) String() string {
+	switch appType {
+	case Game:
+		return "game"
+	case Dlc:
+		return "dlc"
+	case Music:
+		return "music"
+	case Unknown:
+		return "unknown"
+	}
+	return "unknown"
+}
+
+func StringToAppType(s string) AppType {
+	switch s {
+	case "game":
+		return Game
+	case "dlc":
+		return Dlc
+	case "music":
+		return Music
+	case "unknown":
+		return Unknown
+	}
+	return Unknown
+}
 
 type PriceOverview struct {
 	Initial          float64
 	Final            float64
 	Discount_percent float64
 	Currency         string
+	IsFree           bool
+}
+
+type Package struct {
+	PackageId  int
+	Name       string
+	AppIds     []int
+	Price      PriceOverview
+	Individual float64
+	PageImage  string
+	SmallLogo  string
+}
+
+type AppInfo struct {
+	Appid       int
+	Name        string
+	Type        AppType
+	DLC         []int
+	Packages    []int
+	Description string
+	HeaderImage string
+	Price       PriceOverview
+	Genres      []string
 }
 
 func GetAppList() []gjson.Result {
 	resp, err := http.Get("https://api.steampowered.com/ISteamApps/GetAppList/v2/")
-
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -50,7 +119,8 @@ func extractPriceOverview(body *[]byte, appid int) (*PriceOverview, error) {
 	return &PriceOverview{res.Get("initial").Value().(float64),
 		res.Get("final").Value().(float64),
 		res.Get("discount_percent").Value().(float64),
-		res.Get("currency").Value().(string)}, nil
+		res.Get("currency").Value().(string),
+		false}, nil
 
 }
 
@@ -138,7 +208,101 @@ func GetFeaturedCategories(cc string) ([]int, []PriceOverview, error) {
 			PriceOverview{items[i].Get("original_price").Value().(float64),
 				items[i].Get("final_price").Value().(float64),
 				items[i].Get("discount_percent").Value().(float64),
-				items[i].Get("currency").Value().(string)})
+				items[i].Get("currency").Value().(string),
+				false})
 	}
 	return resultIDs, resultOverviews, nil
+}
+
+func GetAppInfo(appid int, cc string) (AppInfo, error) {
+	var result AppInfo
+	steamQuery := fmt.Sprintf(`http://store.steampowered.com/api/appdetails?appids=%d&cc=%s`, appid, cc)
+	resp, err := http.Get(steamQuery)
+	if err != nil {
+		return AppInfo{}, err
+	}
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return AppInfo{}, err
+	}
+	path := fmt.Sprintf("%d.success", appid)
+	if !gjson.Get(string(body), path).Bool() {
+		return AppInfo{}, fmt.Errorf(fmt.Sprintf("Invalid appid: %d", appid))
+	}
+	path = fmt.Sprintf("%d.data", appid)
+	infoJson := gjson.Get(string(body), path)
+	if len(infoJson.Array()) == 0 {
+		return AppInfo{}, fmt.Errorf(fmt.Sprintf("Game may be free or has different pay methods. Appid: %d", appid))
+	}
+	result.Type = StringToAppType(infoJson.Get("type").String())
+	result.Name = infoJson.Get("name").String()
+	result.Appid, err = strconv.Atoi(infoJson.Get("steam_appid").String())
+	if err != nil {
+		return AppInfo{}, err
+	}
+	if infoJson.Get("is_free").Bool() {
+		result.Price.IsFree = true
+	} else {
+		result.Price = PriceOverview{
+			infoJson.Get("price_overview.initial").Float(),
+			infoJson.Get("price_overview.final").Float(),
+			infoJson.Get("price_overview.discount_percent").Float(),
+			infoJson.Get("price_overview.currency").String(),
+			false,
+		}
+	}
+	for _, r := range infoJson.Get("dlc").Array() {
+		result.DLC = append(result.DLC, int(r.Int()))
+	}
+	for _, r := range infoJson.Get("packages").Array() {
+		result.Packages = append(result.Packages, int(r.Int()))
+	}
+	for _, r := range infoJson.Get("genres").Array() {
+		result.Genres = append(result.Genres, r.Get("description").String())
+	}
+	result.Description = tagsPolicy.Sanitize(infoJson.Get("detailed_description").String())
+	result.Description = strings.ReplaceAll(result.Description, "\t", "")
+	result.HeaderImage = infoJson.Get("header_image").String()
+	return result, nil
+}
+
+func GetPackageInfo(packageid int, cc string) (Package, error) {
+	var result Package
+	steamQuery := fmt.Sprintf(`http://store.steampowered.com/api/packagedetails?packageids=%d&cc=%s`, packageid, cc)
+	resp, err := http.Get(steamQuery)
+	if err != nil {
+		return Package{}, err
+	}
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return Package{}, err
+	}
+
+	path := fmt.Sprintf("%d.success", packageid)
+	if !gjson.Get(string(body), path).Bool() {
+		return Package{}, fmt.Errorf(fmt.Sprintf("Invalid appid: %d", packageid))
+	}
+	path = fmt.Sprintf("%d.data", packageid)
+	infoJson := gjson.Get(string(body), path)
+	if len(infoJson.Array()) == 0 {
+		return Package{}, fmt.Errorf(fmt.Sprintf("Game may be free or has different pay methods. Appid: %d", packageid))
+	}
+	result.PackageId = packageid
+	result.Name = infoJson.Get("name").String()
+	for _, r := range infoJson.Get("apps").Array() {
+		result.AppIds = append(result.AppIds, int(r.Get("id").Int()))
+	}
+	result.Price = PriceOverview{
+		infoJson.Get("price.initial").Float(),
+		infoJson.Get("price.final").Float(),
+		infoJson.Get("price.discount_percent").Float(),
+		infoJson.Get("price.currency").String(),
+		infoJson.Get("price.initial").Float() == 0,
+	}
+	result.Individual = infoJson.Get("price.individual").Float()
+	result.PageImage = infoJson.Get("page_image").String()
+	result.SmallLogo = infoJson.Get("small_logo").String()
+	return result, nil
 }

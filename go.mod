@@ -11,21 +11,23 @@ require github.com/lib/pq v1.10.4
 require github.com/leesper/couchdb-golang v1.2.1
 
 require (
-	github.com/golang/protobuf v1.5.2 // indirect
-	github.com/hyperledger/fabric v2.1.1+incompatible // indirect
-	github.com/miekg/pkcs11 v1.0.3 // indirect
-	github.com/pkg/errors v0.9.1 // indirect
-	github.com/sykesm/zap-logfmt v0.0.4 // indirect
+	github.com/aymerick/douceur v0.2.0 // indirect
+	github.com/google/go-github/v35 v35.2.0 // indirect
+	github.com/google/go-querystring v1.0.0 // indirect
+	github.com/gorilla/css v1.0.0 // indirect
+	github.com/hashicorp/errwrap v1.0.0 // indirect
+	github.com/hashicorp/go-multierror v1.1.0 // indirect
 	go.uber.org/atomic v1.7.0 // indirect
-	go.uber.org/multierr v1.6.0 // indirect
-	go.uber.org/zap v1.19.1 // indirect
-	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9 // indirect
-	golang.org/x/sys v0.0.0-20210630005230-0f9fa26af87c // indirect
+	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519 // indirect
+	golang.org/x/net v0.0.0-20211013171255-e13a2654a71e // indirect
 	google.golang.org/grpc v1.42.0 // indirect
-	google.golang.org/protobuf v1.26.0 // indirect
+	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 )
 
 require (
+	github.com/golang-migrate/migrate/v4 v4.15.1
+	github.com/grokify/html-strip-tags-go v0.0.1
+	github.com/microcosm-cc/bluemonday v1.0.16
 	github.com/neo4j/neo4j-go-driver/v4 v4.4.0
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.0 // indirect

@@ -10,6 +10,7 @@ import (
 	userdb "github.com/gamediscounts/db/couchdb"
 	wishlist "github.com/gamediscounts/db/neo4j"
 	"github.com/gamediscounts/db/postgres"
+	"github.com/gamediscounts/model/steamapi"
 	"github.com/gamediscounts/server"
 	"github.com/leesper/couchdb-golang"
 
@@ -109,12 +110,34 @@ func run() error {
 }
 
 func main() {
+	info, eeee := steamapi.GetAppInfo(620, "ua")
+	if eeee != nil {
+		log.Fatalln(eeee)
+	}
+	fmt.Println("info:", info)
+	info, eeee = steamapi.GetAppInfo(323180, "ua")
+	if eeee != nil {
+		log.Fatalln(eeee)
+	}
+	fmt.Println("info:", info)
 
+	packageinfo, eeee := steamapi.GetPackageInfo(7877, "ua")
+	if eeee != nil {
+		log.Fatalln(eeee)
+	}
+	fmt.Println("info:", packageinfo)
+
+	packageinfo, eeee = steamapi.GetPackageInfo(124923, "ua")
+	if eeee != nil {
+		log.Fatalln(eeee)
+	}
+	fmt.Println("info:", packageinfo)
+
+	log.Fatalln("endOfTests")
 	// errInit := initdb()
 	// if errInit != nil {
 	// 	log.Fatalln(errInit)
 	// }
-
 	wishlistDB, er := wishlist.OpenDB(wishlistURI, wishUsername, wishPassword)
 
 	if er != nil {
@@ -205,11 +228,16 @@ func main() {
 	fmt.Println(user)
 
 	fmt.Println("connecting")
-	fmt.Scanln()
 	// these details match the docker-compose.yml file.
 	postgresInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
 		host, port, username, password, dbname)
 	db, err := postgres.Open(postgresInfo) // dummy DB for test
+
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	err = db.InitGamePrice()
 
 	if err != nil {
 		log.Fatalln(err)
