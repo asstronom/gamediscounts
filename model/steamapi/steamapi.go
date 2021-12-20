@@ -37,6 +37,14 @@ func (appType AppType) String() string {
 		return "dlc"
 	case Music:
 		return "music"
+	case Demo:
+		return "demo"
+	case Advertising:
+		return "advertising"
+	case Mod:
+		return "mod"
+	case Video:
+		return "video"
 	case Unknown:
 		return "unknown"
 	}
@@ -51,6 +59,14 @@ func StringToAppType(s string) AppType {
 		return Dlc
 	case "music":
 		return Music
+	case "demo":
+		return Demo
+	case "advertising":
+		return Advertising
+	case "mod":
+		return Mod
+	case "video":
+		return Video
 	case "unknown":
 		return Unknown
 	}
@@ -85,6 +101,32 @@ type AppInfo struct {
 	HeaderImage string
 	Price       PriceOverview
 	Genres      []string
+}
+
+func (a AppInfo) Equal(b AppInfo) bool {
+	if a.Appid == b.Appid &&
+		a.Name == b.Name &&
+		a.Type == b.Type &&
+		a.Description == b.Description &&
+		a.HeaderImage == b.HeaderImage &&
+		a.Price == b.Price {
+		for i, v := range a.DLC {
+			if v != b.DLC[i] {
+				return false
+			}
+		}
+		for i, v := range a.Packages {
+			if v != b.Packages[i] {
+				return false
+			}
+		}
+		for i, v := range a.Genres {
+			if v != b.Genres[i] {
+				return false
+			}
+		}
+	}
+	return true
 }
 
 func GetAppList() []gjson.Result {
@@ -150,6 +192,9 @@ func GetAppPrice(appid int, cc string) (*PriceOverview, error) {
 }
 
 func GetAppsPrice(appids *[]int, cc string) (*[]*PriceOverview, error) {
+	if len(*appids) == 0 {
+		return nil, fmt.Errorf("appids slice empty")
+	}
 	var steamapps string
 	steamapps += strconv.Itoa((*appids)[0])
 	for i := 1; i < len(*appids); i++ {
@@ -228,12 +273,12 @@ func GetAppInfo(appid int, cc string) (AppInfo, error) {
 	}
 	path := fmt.Sprintf("%d.success", appid)
 	if !gjson.Get(string(body), path).Bool() {
-		return AppInfo{}, fmt.Errorf(fmt.Sprintf("Invalid appid: %d", appid))
+		return AppInfo{}, fmt.Errorf("invalid appid")
 	}
 	path = fmt.Sprintf("%d.data", appid)
 	infoJson := gjson.Get(string(body), path)
 	if len(infoJson.Array()) == 0 {
-		return AppInfo{}, fmt.Errorf(fmt.Sprintf("Game may be free or has different pay methods. Appid: %d", appid))
+		return AppInfo{}, fmt.Errorf("game may be free or has different pay methods")
 	}
 	result.Type = StringToAppType(infoJson.Get("type").String())
 	result.Name = infoJson.Get("name").String()

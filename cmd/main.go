@@ -122,6 +122,13 @@ func main() {
 	}
 	fmt.Println("info:", info)
 
+	fmt.Println("info:", info)
+	info, eeee = steamapi.GetAppInfo(216938, "ua")
+	if eeee != nil {
+		log.Println(eeee)
+	}
+	fmt.Println("info:", info)
+
 	packageinfo, eeee := steamapi.GetPackageInfo(7877, "ua")
 	if eeee != nil {
 		log.Fatalln(eeee)
@@ -133,6 +140,12 @@ func main() {
 		log.Fatalln(eeee)
 	}
 	fmt.Println("info:", packageinfo)
+
+	price, eeee := steamapi.GetAppPrice(570, "ua")
+	if eeee != nil {
+		log.Fatalln(eeee)
+	}
+	fmt.Println(price)
 
 	log.Fatalln("endOfTests")
 	// errInit := initdb()

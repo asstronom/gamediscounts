@@ -152,22 +152,31 @@ func (db *UserDB) GetUserByName(username string) (User, error) {
 	return user, nil
 }
 
-func (db *UserDB) GetUserByEmail(emailName string, emailDomain string) (User, error) {
-	selector := fmt.Sprintf("emailname == %s && emaildomain == %s", emailName, emailDomain)
-	doc, err := db.db.Query(nil, selector, nil, nil, nil, []string{"registration", "email"})
+func (db *UserDB) RemoveUserByName(username string) error {
+	user, err := db.GetUserByName(username)
 	if err != nil {
-		fmt.Println("Here")
-		return User{}, err
+		return err
 	}
-	if len(doc) != 1 {
-		return User{}, fmt.Errorf("error while searching")
-	}
-	user := User{}
-	err = couchdb.FromJSONCompatibleMap(&user, doc[0])
-	if err != nil {
-		fmt.Println("error converting to struct User")
-		return User{}, err
-	}
-
-	return user, nil
+	db.db.Delete(user.GetID())
+	return nil
 }
+
+// func (db *UserDB) GetUserByEmail(emailName string, emailDomain string) (User, error) {
+// 	selector := fmt.Sprintf("emailname == %s && emaildomain == %s", emailName, emailDomain)
+// 	doc, err := db.db.Query(nil, selector, nil, nil, nil, []string{"registration", "email"})
+// 	if err != nil {
+// 		fmt.Println("Here")
+// 		return User{}, err
+// 	}
+// 	if len(doc) != 1 {
+// 		return User{}, fmt.Errorf("error while searching")
+// 	}
+// 	user := User{}
+// 	err = couchdb.FromJSONCompatibleMap(&user, doc[0])
+// 	if err != nil {
+// 		fmt.Println("error converting to struct User")
+// 		return User{}, err
+// 	}
+
+// 	return user, nil
+// }
