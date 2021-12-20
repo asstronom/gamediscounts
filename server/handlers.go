@@ -25,12 +25,21 @@ func (s *Server) HandleIndex() http.HandlerFunc {
 		if err != nil {
 			log.Println(err)
 		}
+
 		offers, err := s.gameDB.BestOffers(start, count, postgres.UA)
+		var games []postgres.Game
+		for _, item := range offers {
+			game, err := s.gameDB.GetGame(item.Gameid, postgres.UA)
+			if err != nil {
+				log.Println(err)
+			}
+			games = append(games, game)
+		}
 		fmt.Println(len(offers)) //check len of array for debugging
 		if err != nil {
 			log.Println(err)
 		}
-		s.respond(w, r, offers, http.StatusOK)
+		s.respond(w, r, games, http.StatusOK)
 	}
 }
 func (s *Server) HandleSingleGame() http.HandlerFunc {
@@ -38,14 +47,14 @@ func (s *Server) HandleSingleGame() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		id := vars["id"]
-		username, err := auth.GetTokenUsername(r)
+		//username, err := auth.GetTokenUsername(r)
 		idint, _ := strconv.Atoi(id)
 		game, err := s.gameDB.GetGame(idint, postgres.UA)
 		if err != nil {
 			log.Println(err)
 		}
 		//fmt.Println(vars) // just for debug
-		fmt.Println(username)
+		//fmt.Println(username)
 		s.respond(w, r, game, http.StatusOK)
 	}
 }

@@ -108,11 +108,7 @@ func run() error {
 
 func main() {
 	//
-	//errInit := initdb()
-	// if errInit != nil {
-	// 	log.Fatalln(errInit)
-	//}
-
+	//go initdb()
 	wishlistDB, er := wishlist.OpenDB(wishlistURI, wishUsername, wishPassword)
 
 	if er != nil {
