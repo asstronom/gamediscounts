@@ -3,7 +3,6 @@ package server
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	userdb "github.com/gamediscounts/db/couchdb"
 	wishlist "github.com/gamediscounts/db/neo4j"
 	"github.com/gamediscounts/db/postgres"
@@ -36,10 +35,10 @@ func (s *Server) respond(w http.ResponseWriter, r *http.Request, data interface{
 	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(status)
 	if data != nil {
-		dataJSON, _ := json.Marshal(data)
+		//dataJSON, _ := json.Marshal(data)
 		//lol := string(dataJSON) // lol:)
-		fmt.Println(string(dataJSON)) // for debugging
-		err := json.NewEncoder(w).Encode(string(dataJSON))
+		//fmt.Println(string(dataJSON)) // for debugging
+		err := json.NewEncoder(w).Encode(data)
 		if err != nil {
 
 		}
