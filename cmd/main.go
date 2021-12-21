@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/rs/cors"
 	"net/http"
 	"time"
 
@@ -17,7 +18,6 @@ import (
 	//"net/http"
 
 	_ "github.com/lib/pq"
-	//"github.com/tidwall/gjson"
 )
 
 const (
@@ -274,9 +274,11 @@ func main() {
 	s := server.Init(ctx, db, &userDB, wishlistDB)
 	addr := ":8080"
 
+	handler := cors.Default().Handler(s)
+
 	httpServer := &http.Server{
 		Addr:         addr,
-		Handler:      s,
+		Handler:      handler,
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 10 * time.Second,
 	}

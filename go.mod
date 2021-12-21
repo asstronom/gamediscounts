@@ -31,6 +31,7 @@ require (
 	github.com/golang-migrate/migrate/v4 v4.15.1
 	github.com/microcosm-cc/bluemonday v1.0.16
 	github.com/neo4j/neo4j-go-driver/v4 v4.4.0
+	github.com/rs/cors v1.8.0
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.0 // indirect
 	github.com/xhit/go-simple-mail/v2 v2.10.0
