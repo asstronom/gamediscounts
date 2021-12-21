@@ -432,7 +432,7 @@ func (DB *GameDB) BestOffers(start int, count int, country Country) ([]GamePrice
 
 func (DB *GameDB) GetAppPrice(gameid int, storeid int, country Country) (GamePrice, error) {
 	var res GamePrice
-	row := DB.QueryRow(`SELECT gameid, storeid, price, final, discount, free FROM gameprice WHERE gameid = $1 AND storeid = $2`, gameid, storeid)
+	row := DB.QueryRow(`SELECT gameid, storeid, final, discount, free FROM gameprice WHERE gameid = $1 AND storeid = $2`, gameid, storeid) // price was here
 	if row.Err() != nil {
 		return GamePrice{}, row.Err()
 	}

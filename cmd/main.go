@@ -133,7 +133,13 @@ func main() {
 	// }
 	// fmt.Println("info:", packageinfo)
 	//
-	//go initdb()
+	//go func() {
+	//	err := initdb()
+	//	if err != nil {
+	//		log.Println(err)
+	//	}
+	//}()
+
 	wishlistDB, er := wishlist.OpenDB(wishlistURI, wishUsername, wishPassword)
 
 	if er != nil {
@@ -196,10 +202,10 @@ func main() {
 	//
 	//fmt.Println(wishlistDB.GetWishlist("asstronom"))
 	//
-	err := run()
-	if err != nil {
-		log.Fatalln(err)
-	}
+	//err := run()
+	//if err != nil {
+	//	log.Fatalln(err)
+	//}
 	userDB, e := userdb.OpenDB("http://couchdb:couchdb@localhost:5984", "gamediscounts")
 	if e != nil {
 		fmt.Println("Wrong")
@@ -243,19 +249,19 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	// err = db.InitTables()
-	// if err != nil {
-	// 	log.Fatalln(err)
-	// }
-	// err = db.InitStores()
-	// if err != nil {
-	// 	log.Fatalln(err)
-	// }
+	err = db.InitTables()
+	if err != nil {
+		log.Fatalln(err)
+	}
+	err = db.InitStores()
+	if err != nil {
+		log.Fatalln(err)
+	}
 
-	// err = db.InitDatabase()
-	// if err != nil {
-	// 	log.Fatalln(err)
-	// }
+	//err = db.InitDatabase()
+	//if err != nil {
+	//log.Fatalln(err)
+	//}
 
 	err = db.RefreshFeatured()
 	if err != nil {

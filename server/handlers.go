@@ -36,6 +36,7 @@ func (s *Server) HandleIndex() http.HandlerFunc {
 			games = append(games, game)
 		}
 		fmt.Println(len(offers)) //check len of array for debugging
+		fmt.Println(games)       //check len of array for debugging
 		if err != nil {
 			log.Println(err)
 		}

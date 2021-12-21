@@ -113,7 +113,7 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 			"message": "wrong username or password"})
 		return
 	}
-	expirationTime := time.Now().Add(5 * time.Minute)
+	expirationTime := time.Now().Add(72 * time.Hour)
 	claims := &Claims{
 		Username: creds.Username,
 		StandardClaims: jwt.StandardClaims{
