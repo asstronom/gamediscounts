@@ -141,6 +141,9 @@ func (DB *WishlistDB) RemoveWholeWishlist(username string) error {
 	session := DB.db.NewSession(neo4j.SessionConfig{})
 
 	defer session.Close()
-
+	_, err := session.Run(`MATCH (u:User{username: $username})-[t:tracks]-() DELETE t`, map[string]interface{}{"username": username})
+	if err != nil {
+		return err
+	}
 	return nil
 }
