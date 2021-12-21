@@ -181,6 +181,26 @@ func (DB *WishlistDB) RemoveWholeWishlist(username string) error {
 	return nil
 }
 
+func (DB *WishlistDB) GetGames() ([]int64, error) {
+	res := []int64{}
+	session := DB.db.NewSession(neo4j.SessionConfig{})
+	defer session.Close()
+
+	records, err := session.Run(`MATCH (u:Game{})<--() RETURN u`, map[string]interface{}{})
+	if err != nil {
+		return nil, err
+	}
+	result, err := records.Collect()
+	if err != nil {
+		return nil, err
+	}
+	for _, r := range result {
+		res = append(res, r.Values[0].(neo4j.Node).Props["id"].(int64))
+	}
+
+	return res, nil
+}
+
 func (DB *WishlistDB) GetUsersByGame(gameid int) ([]string, error) {
 	res := []string{}
 	session := DB.db.NewSession(neo4j.SessionConfig{})
