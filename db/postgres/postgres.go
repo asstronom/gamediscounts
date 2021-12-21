@@ -124,6 +124,7 @@ func (DB *GameDB) InitTables() error {
 	}
 	_, err = DB.Exec("DROP TABLE IF EXISTS featured CASCADE")
 	if err != nil {
+		fmt.Println("error dropping featured")
 		return err
 	}
 	_, err = DB.Exec("DROP TABLE IF EXISTS dlc CASCADE")
@@ -276,6 +277,12 @@ func (DB *GameDB) InitTables() error {
 		return err
 	}
 
+	_, err = DB.Exec(`ALTER TABLE featured ADD CONSTRAINT featured_primary_key PRIMARY KEY (gameid, storeid)`)
+	if err != nil {
+		fmt.Println("creating constraint on feature")
+		return err
+	}
+
 	return nil
 }
 
@@ -389,50 +396,62 @@ func (DB *GameDB) InitGamePrice() error {
 	return nil
 }
 
-func (DB *GameDB) BestOffers(start int, count int, country Country) ([]GamePrice, error) {
-	type featuredid struct {
-		gameid  int
-		storeid int
-	}
-	var (
-		ids []featuredid
-		res []GamePrice
-	)
-	rows, err := DB.Query(`SELECT gameid, storeid FROM featured LIMIT $1 OFFSET $2`, count, start)
+func (DB *GameDB) BestOffers(start int, count int, country Country) ([]Game, error) {
+	var res []Game
+
+	rows, err := DB.Query(`SELECT gameprice.gameid, gameprice.storeid, gameprice.initial, gameprice.final, gameprice.discount, gameprice.free, gameprice.currency
+	 FROM gameprice INNER JOIN featured ON gameprice.gameid = featured.gameid AND gameprice.storeid = featured.storeid
+	 ORDER BY initial - final DESC
+	  LIMIT $1 OFFSET $2;`,
+		count, start)
 	if err != nil {
 		return nil, err
 	}
-	for i := 0; rows.Next(); i++ {
-		var curid int
-		var curstore int
-		rows.Scan(&curid, &curstore)
-		ids = append(ids, featuredid{gameid: curid, storeid: curstore})
-	}
-
-	for i := 0; i < len(ids); i++ {
-		row := DB.QueryRow(`
-		SELECT gameid, storeid, initial, final, discount, free
-		FROM gameprice 
-		WHERE
-		gameid = $1 AND storeid = $2`,
-			ids[i].gameid, ids[i].storeid)
-		if row.Err() != nil {
+	for rows.Next() {
+		var tempGame Game
+		var temp GamePrice
+		err = rows.Scan(&temp.Gameid, &temp.Storeid, &temp.Initial, &temp.Final, &temp.Discount, &temp.IsFree, &temp.Currency)
+		if err != nil {
+			fmt.Println("error scanning in bestoffers")
 			return nil, err
 		}
-		temp := GamePrice{}
-		err = row.Scan(&temp.Gameid, &temp.Storeid, &temp.Initial, &temp.Final, &temp.Discount, &temp.IsFree)
+		tempGame.Price = append(tempGame.Price, temp)
+		res = append(res, tempGame)
+	}
+
+	for i, g := range res {
+		res[i].Id = g.Price[0].Gameid
+		row := DB.QueryRow(`SELECT name, description, headerimage FROM game WHERE id = $1`, g.Price[0].Gameid)
+		if row.Err() != nil {
+			return nil, row.Err()
+		}
+		err = row.Scan(&res[i].Name, &res[i].Description, &res[i].ImageURL)
 		if err != nil {
 			return nil, err
 		}
-		temp.Currency = country.Currency()
-		res = append(res, temp)
+		rows, err := DB.Query(`SELECT genre.name FROM genre, gamegenre, game WHERE gamegenre.gameid = game.id AND genre.id = gamegenre.
+		genreid AND game.id = $1`, res[i].Id)
+		if err != nil {
+			fmt.Println("error getting gamegenres for bestoffers")
+			return nil, err
+		}
+		for rows.Next() {
+			var genre string
+			err = rows.Scan(&genre)
+			if err != nil {
+				fmt.Println("error scanning genre bestoffers")
+				return nil, err
+			}
+			res[i].Genres = append(res[i].Genres, genre)
+		}
 	}
 	return res, nil
 }
 
 func (DB *GameDB) GetAppPrice(gameid int, storeid int, country Country) (GamePrice, error) {
 	var res GamePrice
-	row := DB.QueryRow(`SELECT gameid, storeid, final, discount, free FROM gameprice WHERE gameid = $1 AND storeid = $2`, gameid, storeid) // price was here
+
+	row := DB.QueryRow(`SELECT gameid, storeid, initial, final, discount, free FROM gameprice WHERE gameid = $1 AND storeid = $2`, gameid, storeid)
 	if row.Err() != nil {
 		return GamePrice{}, row.Err()
 	}
@@ -459,21 +478,35 @@ func (DB *GameDB) GetGameName(gameid int) (string, error) {
 
 func (DB *GameDB) GetGame(gameid int, country Country) (Game, error) {
 	var res Game
-	row := DB.QueryRow(`SELECT name, id FROM game WHERE id = $1`, gameid)
+	res.Id = gameid
+	row := DB.QueryRow(`SELECT name, description, headerimage FROM game WHERE id = $1`, gameid)
 	if row.Err() != nil {
-		return Game{}, row.Err()
+		return res, row.Err()
 	}
-	err := row.Scan(&res.Name, &res.Id)
+	err := row.Scan(&res.Name, &res.Description, &res.ImageURL)
 	if err != nil {
-		return Game{}, err
+		return res, err
 	}
-	for i := 1; i <= StoresNum; i++ {
-		temp, err := DB.GetAppPrice(gameid, i, country)
+	rows, err := DB.Query(`SELECT genre.name FROM genre, gamegenre, game WHERE gamegenre.gameid = game.id AND genre.id = gamegenre.
+		genreid AND game.id = $1`, res.Id)
+	if err != nil {
+		fmt.Println("error getting gamegenres for bestoffers")
+		return res, err
+	}
+	for rows.Next() {
+		var genre string
+		err = rows.Scan(&genre)
 		if err != nil {
-			//return Game{}, err
+			fmt.Println("error scanning genre bestoffers")
+			return res, err
 		}
-		res.Price = append(res.Price, temp)
+		res.Genres = append(res.Genres, genre)
 	}
+	temp, err := DB.GetAppPrice(gameid, int(SteamID), UA)
+	if err != nil {
+		return res, err
+	}
+	res.Price = append(res.Price, temp)
 	return res, nil
 }
 
@@ -773,14 +806,40 @@ func (DB *GameDB) RefreshFeatured() error {
 				return err
 			}
 		}
-		_, err = DB.Exec(`INSERT INTO featured(gameid, storeid) VALUES ($1, $2)`, curGameId, SteamID)
-		if err != nil {
-			if err.Error() == `pq: duplicate key value violates unique constraint "featuredid"` {
-				fmt.Printf("Duplicate game in featured Steam (gameid, storegameid): %d, %d\n", curGameId, ids[i])
-			} else {
-				return err
-			}
-		}
+		// _, err = DB.Exec(`INSERT INTO featured(gameid, storeid) VALUES ($1, $2)`, curGameId, SteamID)
+		// if err != nil {
+		// 	if err.Error() == `pq: duplicate key value violates unique constraint "featuredid"` {
+		// 		fmt.Printf("Duplicate game in featured Steam (gameid, storegameid): %d, %d\n", curGameId, ids[i])
+		// 	} else {
+		// 		return err
+		// 	}
+		// }
+	}
+
+	_, err = DB.Exec(`INSERT INTO featured (gameid, storeid) SELECT bestoffers.gameid, bestoffers.storeid FROM (SELECT price.gameid, price.storeid FROM (SELECT * FROM gameprice WHERE discount <> 0) AS price ORDER BY price.initial - price.final DESC) AS bestoffers ON conflict DO nothing`)
+	if err != nil {
+		return err
 	}
 	return nil
+}
+
+func (DB *GameDB) SearchGame(query string) ([]Game, error) {
+	var res []Game
+	rows, err := DB.Query(`SELECT id FROM game WHERE name LIKE $1`, "%"+query+"%")
+	if err != nil {
+		return nil, err
+	}
+	for rows.Next() {
+		var curid int
+		err = rows.Scan(&curid)
+		if err != nil {
+			return nil, err
+		}
+		temp, err := DB.GetGame(curid, UA)
+		if err != nil {
+			return nil, err
+		}
+		res = append(res, temp)
+	}
+	return res, nil
 }

@@ -11,4 +11,4 @@ RUN go get -u github.com/gorilla/mux
 # Compile the binary exe for our app.
 RUN go build -o main .
 # Start the application.
-CMD ["./main"]
+CMD ["./cmd/main"]

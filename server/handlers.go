@@ -3,11 +3,12 @@ package server
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/gamediscounts/auth"
-	"github.com/gamediscounts/db/postgres"
 	"log"
 	"net/http"
 	"strconv"
+
+	"github.com/gamediscounts/auth"
+	"github.com/gamediscounts/db/postgres"
 
 	"github.com/gorilla/mux"
 )
@@ -27,20 +28,20 @@ func (s *Server) HandleIndex() http.HandlerFunc {
 		}
 
 		offers, err := s.gameDB.BestOffers(start, count, postgres.UA)
-		var games []postgres.Game
-		for _, item := range offers {
-			game, err := s.gameDB.GetGame(item.Gameid, postgres.UA)
-			if err != nil {
-				log.Println(err)
-			}
-			games = append(games, game)
-		}
+		// var games []postgres.Game
+		// for _, item := range offers {
+		// 	game, err := s.gameDB.GetGame(item.Gameid, postgres.UA)
+		// 	if err != nil {
+		// 		log.Println(err)
+		// 	}
+		// 	games = append(games, game)
+		//}
 		fmt.Println(len(offers)) //check len of array for debugging
 		fmt.Println(games)       //check len of array for debugging
 		if err != nil {
 			log.Println(err)
 		}
-		s.respond(w, r, games, http.StatusOK)
+		s.respond(w, r, offers, http.StatusOK)
 	}
 }
 func (s *Server) HandleSingleGame() http.HandlerFunc {

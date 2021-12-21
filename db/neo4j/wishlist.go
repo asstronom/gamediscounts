@@ -83,6 +83,20 @@ func (DB *WishlistDB) CheckIfUserExists(username string) error {
 }
 
 func (DB *WishlistDB) CheckIfGameExists(gameid int) error {
+
+	session := DB.db.NewSession(neo4j.SessionConfig{})
+	defer session.Close()
+	result, err := session.Run(`MATCH (u:Game{id:$gameid}) RETURN u`, map[string]interface{}{"gameid": gameid})
+	if err != nil {
+		return err
+	}
+	records, err := result.Collect()
+	if err != nil {
+		return err
+	}
+	if len(records) == 0 {
+		return fmt.Errorf("Game doesn't exist")
+	}
 	return nil
 }
 
@@ -141,6 +155,34 @@ func (DB *WishlistDB) RemoveWholeWishlist(username string) error {
 	session := DB.db.NewSession(neo4j.SessionConfig{})
 
 	defer session.Close()
-
+	_, err := session.Run(`MATCH (u:User{username: $username})-[t:tracks]-() DELETE t`, map[string]interface{}{"username": username})
+	if err != nil {
+		return err
+	}
 	return nil
+}
+
+func (DB *WishlistDB) GetUsersByGame(gameid int) ([]string, error) {
+	res := []string{}
+	session := DB.db.NewSession(neo4j.SessionConfig{})
+	defer session.Close()
+
+	err := DB.CheckIfGameExists(gameid)
+
+	if err != nil {
+		return nil, err
+	}
+
+	records, err := session.Run(`MATCH (u:Game{id:$gameid})<--(n) RETURN n`, map[string]interface{}{"gameid": gameid})
+	if err != nil {
+		return nil, err
+	}
+	result, err := records.Collect()
+	if err != nil {
+		return nil, err
+	}
+	for _, r := range result {
+		res = append(res, r.Values[0].(neo4j.Node).Props["username"].(string))
+	}
+	return res, nil
 }
