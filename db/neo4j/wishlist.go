@@ -127,9 +127,20 @@ func (DB *WishlistDB) AddGameToWishList(username string, gameid int) error {
 }
 
 func (DB *WishlistDB) RemoveSingleTrack(username string, gameid int) error {
+	session := DB.db.NewSession(neo4j.SessionConfig{})
+
+	defer session.Close()
+	_, err := session.Run(`MATCH (u:User{username: $username})-[t:tracks]-(g:Game{id: $gameid}) DELETE t`, map[string]interface{}{"username": username, "gameid": gameid})
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
 func (DB *WishlistDB) RemoveWholeWishlist(username string) error {
+	session := DB.db.NewSession(neo4j.SessionConfig{})
+
+	defer session.Close()
+
 	return nil
 }
