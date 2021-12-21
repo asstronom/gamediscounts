@@ -450,7 +450,7 @@ func (DB *GameDB) BestOffers(start int, count int, country Country) ([]Game, err
 
 func (DB *GameDB) GetAppPrice(gameid int, storeid int, country Country) (GamePrice, error) {
 	var res GamePrice
-	row := DB.QueryRow(`SELECT gameid, storeid, price, final, discount, free FROM gameprice WHERE gameid = $1 AND storeid = $2`, gameid, storeid)
+	row := DB.QueryRow(`SELECT gameid, storeid, initial, final, discount, free FROM gameprice WHERE gameid = $1 AND storeid = $2`, gameid, storeid)
 	if row.Err() != nil {
 		return GamePrice{}, row.Err()
 	}
@@ -477,21 +477,35 @@ func (DB *GameDB) GetGameName(gameid int) (string, error) {
 
 func (DB *GameDB) GetGame(gameid int, country Country) (Game, error) {
 	var res Game
-	row := DB.QueryRow(`SELECT name, id FROM game WHERE id = $1`, gameid)
+	res.Id = gameid
+	row := DB.QueryRow(`SELECT name, description, headerimage FROM game WHERE id = $1`, gameid)
 	if row.Err() != nil {
-		return Game{}, row.Err()
+		return res, row.Err()
 	}
-	err := row.Scan(&res.Name, &res.Id)
+	err := row.Scan(&res.Name, &res.Description, &res.ImageURL)
 	if err != nil {
-		return Game{}, err
+		return res, err
 	}
-	for i := 1; i <= StoresNum; i++ {
-		temp, err := DB.GetAppPrice(gameid, i, country)
+	rows, err := DB.Query(`SELECT genre.name FROM genre, gamegenre, game WHERE gamegenre.gameid = game.id AND genre.id = gamegenre.
+		genreid AND game.id = $1`, res.Id)
+	if err != nil {
+		fmt.Println("error getting gamegenres for bestoffers")
+		return res, err
+	}
+	for rows.Next() {
+		var genre string
+		err = rows.Scan(&genre)
 		if err != nil {
-			//return Game{}, err
+			fmt.Println("error scanning genre bestoffers")
+			return res, err
 		}
-		res.Price = append(res.Price, temp)
+		res.Genres = append(res.Genres, genre)
 	}
+	temp, err := DB.GetAppPrice(gameid, int(SteamID), UA)
+	if err != nil {
+		return res, err
+	}
+	res.Price = append(res.Price, temp)
 	return res, nil
 }
 
@@ -806,4 +820,25 @@ func (DB *GameDB) RefreshFeatured() error {
 		return err
 	}
 	return nil
+}
+
+func (DB *GameDB) SearchGame(query string) ([]Game, error) {
+	var res []Game
+	rows, err := DB.Query(`SELECT id FROM game WHERE name LIKE $1`, "%"+query+"%")
+	if err != nil {
+		return nil, err
+	}
+	for rows.Next() {
+		var curid int
+		err = rows.Scan(&curid)
+		if err != nil {
+			return nil, err
+		}
+		temp, err := DB.GetGame(curid, UA)
+		if err != nil {
+			return nil, err
+		}
+		res = append(res, temp)
+	}
+	return res, nil
 }

@@ -252,12 +252,12 @@ func main() {
 	// 	log.Fatalln(err)
 	// }
 
-	go func() {
-		err = db.InitDatabase()
-		if err != nil {
-			log.Fatalln(err)
-		}
-	}()
+	// go func() {
+	// 	err = db.InitDatabase()
+	// 	if err != nil {
+	// 		log.Fatalln(err)
+	// 	}
+	// }()
 
 	err = db.RefreshFeatured()
 	if err != nil {
@@ -269,6 +269,17 @@ func main() {
 	// 	log.Fatalln(err)
 	// }
 	// fmt.Println(games)
+
+	//games, err := db.SearchGame("Super")
+
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	// for _, g := range games {
+	// 	fmt.Println(g.Name, g.Id)
+	// }
+	// fmt.Println("len: ", len(games))
 
 	if err != nil {
 		log.Fatalln(err)
