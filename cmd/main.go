@@ -3,17 +3,15 @@ package main
 import (
 	"context"
 	"fmt"
-	userdb "github.com/gamediscounts/db/couchdb"
-	wishlist "github.com/gamediscounts/db/neo4j"
 	"net/http"
 	"time"
 
+	userdb "github.com/gamediscounts/db/couchdb"
+	wishlist "github.com/gamediscounts/db/neo4j"
+
 	"github.com/gamediscounts/db/postgres"
 	"github.com/gamediscounts/server"
-<<<<<<< HEAD
 
-=======
->>>>>>> origin/feature
 	//"io/ioutil"
 	"log"
 	//"net/http"
@@ -137,6 +135,10 @@ func main() {
 	//
 	//go initdb()
 	wishlistDB, er := wishlist.OpenDB(wishlistURI, wishUsername, wishPassword)
+
+	if er != nil {
+		log.Fatalln("error opening wishlist: ", er)
+	}
 
 	// packageinfo, eeee = steamapi.GetPackageInfo(124923, "ua")
 	// if eeee != nil {

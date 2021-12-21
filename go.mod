@@ -15,7 +15,6 @@ require (
 require github.com/leesper/couchdb-golang v1.2.1
 
 require (
-<<<<<<< HEAD
 	github.com/aymerick/douceur v0.2.0 // indirect
 	github.com/google/go-github/v35 v35.2.0 // indirect
 	github.com/google/go-querystring v1.0.0 // indirect
@@ -31,8 +30,6 @@ require (
 require (
 	github.com/golang-migrate/migrate/v4 v4.15.1
 	github.com/microcosm-cc/bluemonday v1.0.16
-=======
->>>>>>> origin/feature
 	github.com/neo4j/neo4j-go-driver/v4 v4.4.0
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.0 // indirect

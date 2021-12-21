@@ -125,3 +125,11 @@ func (DB *WishlistDB) AddGameToWishList(username string, gameid int) error {
 	}
 	return nil
 }
+
+func (DB *WishlistDB) RemoveSingleTrack(username string, gameid int) error {
+	return nil
+}
+
+func (DB *WishlistDB) RemoveWholeWishlist(username string) error {
+	return nil
+}
