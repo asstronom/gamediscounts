@@ -281,6 +281,14 @@ func main() {
 	// }
 	// fmt.Println("len: ", len(games))
 
+	// err = wishlistDB.CheckIfGameExists(620)
+	// if err != nil {
+	// 	log.Fatalln(err)
+	// }
+
+	users, err := wishlistDB.GetUsersByGame(1)
+	fmt.Println(users)
+
 	if err != nil {
 		log.Fatalln(err)
 	}
