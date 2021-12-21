@@ -7,12 +7,8 @@ import (
 	"net/http"
 	"time"
 
-	userdb "github.com/gamediscounts/db/couchdb"
-	wishlist "github.com/gamediscounts/db/neo4j"
 	"github.com/gamediscounts/db/postgres"
-	"github.com/gamediscounts/model/steamapi"
 	"github.com/gamediscounts/server"
-	"github.com/leesper/couchdb-golang"
 
 	//"io/ioutil"
 	"log"
@@ -111,147 +107,163 @@ func run() error {
 }
 
 func main() {
-	info, eeee := steamapi.GetAppInfo(620, "ua")
-	if eeee != nil {
-		log.Fatalln(eeee)
-	}
-	fmt.Println("info:", info)
-	info, eeee = steamapi.GetAppInfo(323180, "ua")
-	if eeee != nil {
-		log.Fatalln(eeee)
-	}
-	fmt.Println("info:", info)
-
-	fmt.Println("info:", info)
-	info, eeee = steamapi.GetAppInfo(216938, "ua")
-	if eeee != nil {
-		log.Println(eeee)
-	}
-	fmt.Println("info:", info)
-
-	packageinfo, eeee := steamapi.GetPackageInfo(7877, "ua")
-	if eeee != nil {
-		log.Fatalln(eeee)
-	}
-	fmt.Println("info:", packageinfo)
-
-	packageinfo, eeee = steamapi.GetPackageInfo(124923, "ua")
-	if eeee != nil {
-		log.Fatalln(eeee)
-	}
-	fmt.Println("info:", packageinfo)
-
-	price, eeee := steamapi.GetAppPrice(570, "ua")
-	if eeee != nil {
-		log.Fatalln(eeee)
-	}
-	fmt.Println(price)
-
-	log.Fatalln("endOfTests")
-	// errInit := initdb()
-	// if errInit != nil {
-	// 	log.Fatalln(errInit)
+	// info, eeee := steamapi.GetAppInfo(620, "ua")
+	// if eeee != nil {
+	// 	log.Fatalln(eeee)
 	// }
-	wishlistDB, er := wishlist.OpenDB(wishlistURI, wishUsername, wishPassword)
+	// fmt.Println("info:", info)
+	// info, eeee = steamapi.GetAppInfo(323180, "ua")
+	// if eeee != nil {
+	// 	log.Fatalln(eeee)
+	// }
+	// fmt.Println("info:", info)
 
-	if er != nil {
-		log.Fatalln(er)
-	}
+	// fmt.Println("info:", info)
+	// info, eeee = steamapi.GetAppInfo(216938, "ua")
+	// if eeee != nil {
+	// 	log.Println(eeee)
+	// }
+	// fmt.Println("info:", info)
 
-	//wishlistDB.Clear()
+	// packageinfo, eeee := steamapi.GetPackageInfo(7877, "ua")
+	// if eeee != nil {
+	// 	log.Fatalln(eeee)
+	// }
+	// fmt.Println("info:", packageinfo)
 
-	// er = wishlistDB.AddUser("pudgebooster")
+	// packageinfo, eeee = steamapi.GetPackageInfo(124923, "ua")
+	// if eeee != nil {
+	// 	log.Fatalln(eeee)
+	// }
+	// fmt.Println("info:", packageinfo)
+
+	// price, eeee := steamapi.GetAppPrice(570, "ua")
+	// if eeee != nil {
+	// 	log.Fatalln(eeee)
+	// }
+	// fmt.Println(price)
+
+	// //log.Fatalln("endOfTests")
+	// // errInit := initdb()
+	// // if errInit != nil {
+	// // 	log.Fatalln(errInit)
+	// // }
+	// wishlistDB, er := wishlist.OpenDB(wishlistURI, wishUsername, wishPassword)
 
 	// if er != nil {
 	// 	log.Fatalln(er)
 	// }
 
-	// er = wishlistDB.AddGame(620)
+	// //wishlistDB.Clear()
+
+	// // er = wishlistDB.AddUser("pudgebooster")
+
+	// // if er != nil {
+	// // 	log.Fatalln(er)
+	// // }
+
+	// // er = wishlistDB.AddGame(620)
+
+	// // if er != nil {
+	// // 	log.Fatalln(er)
+	// // }
+
+	// er = wishlistDB.AddGameToWishList("pudgebooster", 620)
 
 	// if er != nil {
 	// 	log.Fatalln(er)
 	// }
 
-	er = wishlistDB.AddGameToWishList("pudgebooster", 620)
+	// er = wishlistDB.AddGameToWishList("asstronom", 619)
 
-	if er != nil {
-		log.Fatalln(er)
-	}
-
-	er = wishlistDB.AddGameToWishList("asstronom", 619)
-
-	if er != nil {
-		log.Fatalln(er)
-	}
-
-	er = wishlistDB.AddGameToWishList("pudgebooster", 619)
-
-	if er != nil {
-		log.Fatalln(er)
-	}
-
-	er = wishlistDB.AddGameToWishList("pudgebooster", 619)
-
-	if er != nil {
-		log.Fatalln(er)
-	}
-
-	er = wishlistDB.AddGameToWishList("asstronom", 620)
-
-	if er != nil {
-		log.Fatalln(er)
-	}
-
-	fmt.Println(wishlistDB.GetWishlist("asstronom"))
-
-	// //err := run()
-	// if err != nil {
-	// 	log.Fatalln(err)
+	// if er != nil {
+	// 	log.Fatalln(er)
 	// }
-	userDB, e := userdb.OpenDB("http://couchdb:couchdb@localhost:5984", "gamediscounts")
-	if e != nil {
-		fmt.Println("Wrong")
-		log.Fatalln(e)
-	}
 
-	user := userdb.User{userdb.Credentials{"asstronom", "sdla'w;ldsf"}, "danya.live", "gmail.com", false, false, false, couchdb.Document{}}
-	if e != nil {
-		log.Fatalln(e)
-	}
+	// er = wishlistDB.AddGameToWishList("pudgebooster", 619)
 
-	_, e = userDB.AddUser(user)
+	// if er != nil {
+	// 	log.Fatalln(er)
+	// }
 
-	if e != nil {
-		fmt.Println(e)
-	}
+	// er = wishlistDB.AddGameToWishList("pudgebooster", 619)
 
-	user, e = userDB.GetUserByName("asstronom")
+	// if er != nil {
+	// 	log.Fatalln(er)
+	// }
 
-	if e != nil {
-		log.Fatalln(e)
-	}
+	// er = wishlistDB.AddGameToWishList("asstronom", 620)
 
-	fmt.Println(user)
+	// if er != nil {
+	// 	log.Fatalln(er)
+	// }
 
-	user, e = userDB.GetUserByEmail("danya.live", "gmail.com")
+	// fmt.Println(wishlistDB.GetWishlist("asstronom"))
 
-	if e != nil {
-		log.Fatalln(e)
-	}
+	// // //err := run()
+	// // if err != nil {
+	// // 	log.Fatalln(err)
+	// // }
+	// userDB, e := userdb.OpenDB("http://couchdb:couchdb@localhost:5984", "gamediscounts")
+	// if e != nil {
+	// 	fmt.Println("Wrong")
+	// 	log.Fatalln(e)
+	// }
 
-	fmt.Println(user)
+	// user := userdb.User{userdb.Credentials{"asstronom", "sdla'w;ldsf"}, "danya.live", "gmail.com", false, false, false, couchdb.Document{}}
+	// if e != nil {
+	// 	log.Fatalln(e)
+	// }
+
+	// _, e = userDB.AddUser(user)
+
+	// if e != nil {
+	// 	fmt.Println(e)
+	// }
+
+	// user, e = userDB.GetUserByName("asstronom")
+
+	// if e != nil {
+	// 	log.Fatalln(e)
+	// }
+
+	// fmt.Println(user)
+
+	// //user, e = userDB.GetUserByEmail("danya.live", "gmail.com")
+
+	// if e != nil {
+	// 	log.Fatalln(e)
+	// }
+
+	// fmt.Println(user)
 
 	fmt.Println("connecting")
 	// these details match the docker-compose.yml file.
 	postgresInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
 		host, port, username, password, dbname)
 	db, err := postgres.Open(postgresInfo) // dummy DB for test
-
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	err = db.InitGamePrice()
+	// err = db.InitTables()
+	// if err != nil {
+	// 	log.Fatalln(err)
+	// }
+	// err = db.InitStores()
+	// if err != nil {
+	// 	log.Fatalln(err)
+	// }
+
+	// err = db.InitDatabase()
+	// if err != nil {
+	// 	log.Fatalln(err)
+	// }
+
+	err = db.RefreshFeatured()
+	if err != nil {
+		log.Fatalln(err)
+	}
 
 	if err != nil {
 		log.Fatalln(err)

@@ -54,12 +54,13 @@ func TestGetAppsPrice(t *testing.T) {
 		expectedPrices []*PriceOverview
 	}{
 		{
-			[]int{620, 570, 271590, 216938},
+			[]int{620, 570, 271590, 216938, 1798520},
 			[]*PriceOverview{
 				{16900, 16900, 0, "UAH", false},
 				nil,
 				nil,
 				nil,
+				{4000, 4000, 0, "UAH", false},
 			},
 		},
 	}

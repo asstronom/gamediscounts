@@ -146,7 +146,7 @@ func GetAppList() []gjson.Result {
 
 func extractPriceOverview(body *[]byte, appid int) (*PriceOverview, error) {
 	path := fmt.Sprintf("%d.success", appid)
-	if gjson.Get(string(*body), path).Value() == "false" {
+	if !gjson.Get(string(*body), path).Bool() {
 		return nil, fmt.Errorf(fmt.Sprintf("Invalid appid: %d", appid))
 	}
 
