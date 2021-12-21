@@ -2,14 +2,18 @@ package main
 
 import (
 	"context"
-
 	"fmt"
+	userdb "github.com/gamediscounts/db/couchdb"
+	wishlist "github.com/gamediscounts/db/neo4j"
 	"net/http"
 	"time"
 
 	"github.com/gamediscounts/db/postgres"
 	"github.com/gamediscounts/server"
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/feature
 	//"io/ioutil"
 	"log"
 	//"net/http"
@@ -130,6 +134,9 @@ func main() {
 	// 	log.Fatalln(eeee)
 	// }
 	// fmt.Println("info:", packageinfo)
+	//
+	//go initdb()
+	wishlistDB, er := wishlist.OpenDB(wishlistURI, wishUsername, wishPassword)
 
 	// packageinfo, eeee = steamapi.GetPackageInfo(124923, "ua")
 	// if eeee != nil {
@@ -143,101 +150,89 @@ func main() {
 	// }
 	// fmt.Println(price)
 
-	// //log.Fatalln("endOfTests")
-	// // errInit := initdb()
-	// // if errInit != nil {
-	// // 	log.Fatalln(errInit)
-	// // }
-	// wishlistDB, er := wishlist.OpenDB(wishlistURI, wishUsername, wishPassword)
+	//er = wishlistDB.AddUser("pudgebooster")
+	//
+	//if er != nil {
+	//	log.Fatalln(er)
+	//}
+	//
+	//er = wishlistDB.AddGame(620)
+	//
+	//if er != nil {
+	//	log.Fatalln(er)
+	//}
 
-	// if er != nil {
-	// 	log.Fatalln(er)
-	// }
-
-	// //wishlistDB.Clear()
-
-	// // er = wishlistDB.AddUser("pudgebooster")
-
-	// // if er != nil {
-	// // 	log.Fatalln(er)
-	// // }
-
-	// // er = wishlistDB.AddGame(620)
-
-	// // if er != nil {
-	// // 	log.Fatalln(er)
-	// // }
-
-	// er = wishlistDB.AddGameToWishList("pudgebooster", 620)
-
-	// if er != nil {
-	// 	log.Fatalln(er)
-	// }
-
-	// er = wishlistDB.AddGameToWishList("asstronom", 619)
-
-	// if er != nil {
-	// 	log.Fatalln(er)
-	// }
-
-	// er = wishlistDB.AddGameToWishList("pudgebooster", 619)
-
-	// if er != nil {
-	// 	log.Fatalln(er)
-	// }
-
-	// er = wishlistDB.AddGameToWishList("pudgebooster", 619)
-
-	// if er != nil {
-	// 	log.Fatalln(er)
-	// }
-
-	// er = wishlistDB.AddGameToWishList("asstronom", 620)
-
-	// if er != nil {
-	// 	log.Fatalln(er)
-	// }
-
-	// fmt.Println(wishlistDB.GetWishlist("asstronom"))
-
-	// // //err := run()
-	// // if err != nil {
-	// // 	log.Fatalln(err)
-	// // }
-	// userDB, e := userdb.OpenDB("http://couchdb:couchdb@localhost:5984", "gamediscounts")
-	// if e != nil {
-	// 	fmt.Println("Wrong")
-	// 	log.Fatalln(e)
-	// }
-
-	// user := userdb.User{userdb.Credentials{"asstronom", "sdla'w;ldsf"}, "danya.live", "gmail.com", false, false, false, couchdb.Document{}}
-	// if e != nil {
-	// 	log.Fatalln(e)
-	// }
-
-	// _, e = userDB.AddUser(user)
-
-	// if e != nil {
-	// 	fmt.Println(e)
-	// }
-
-	// user, e = userDB.GetUserByName("asstronom")
-
-	// if e != nil {
-	// 	log.Fatalln(e)
-	// }
-
-	// fmt.Println(user)
-
-	// //user, e = userDB.GetUserByEmail("danya.live", "gmail.com")
-
-	// if e != nil {
-	// 	log.Fatalln(e)
-	// }
-
-	// fmt.Println(user)
+	//er = wishlistDB.AddGameToWishList("pudgebooster", 620)
+	//
+	//if er != nil {
+	//	log.Fatalln(er)
+	//}
+	//
+	//er = wishlistDB.AddGameToWishList("asstronom", 619)
+	//
+	//if er != nil {
+	//	log.Fatalln(er)
+	//}
+	//
+	//er = wishlistDB.AddGameToWishList("pudgebooster", 619)
+	//
+	//if er != nil {
+	//	log.Fatalln(er)
+	//}
+	//
+	//er = wishlistDB.AddGameToWishList("pudgebooster", 619)
+	//
+	//if er != nil {
+	//	log.Fatalln(er)
+	//}
+	//
+	//er = wishlistDB.AddGameToWishList("asstronom", 620)
+	//
+	//if er != nil {
+	//	log.Fatalln(er)
+	//}
+	//
+	//fmt.Println(wishlistDB.GetWishlist("asstronom"))
+	//
+	err := run()
+	if err != nil {
+		log.Fatalln(err)
+	}
+	userDB, e := userdb.OpenDB("http://couchdb:couchdb@localhost:5984", "gamediscounts")
+	if e != nil {
+		fmt.Println("Wrong")
+		log.Fatalln(e)
+	}
+	//
+	//user := userdb.User{userdb.Credentials{"asstronom", "sdla'w;ldsf"}, "danya.live", "gmail.com", false, false, false, couchdb.Document{}}
+	//if e != nil {
+	//	log.Fatalln(e)
+	//}
+	//
+	//_, e = userDB.AddUser(user)
+	//
+	//if e != nil {
+	//	fmt.Println(e)
+	//}
+	//
+	//user, e = userDB.GetUserByName("asstronom")
+	//
+	//if e != nil {
+	//	log.Fatalln(e)
+	//}
+	//
+	//fmt.Println(user)
+	//
+	//user, e = userDB.GetUserByEmail("danya.live", "gmail.com")
+	//
+	//if e != nil {
+	//	log.Fatalln(e)
+	//}
+	//
+	//fmt.Println(user)
 
 	fmt.Println("connecting")
+	//	fmt.Scanln()
 	// these details match the docker-compose.yml file.
 	postgresInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
 		host, port, username, password, dbname)
@@ -270,7 +265,7 @@ func main() {
 	}
 
 	ctx := context.Background()
-	s := server.Init(ctx, db)
+	s := server.Init(ctx, db, &userDB, wishlistDB)
 	addr := ":8080"
 
 	httpServer := &http.Server{
