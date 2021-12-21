@@ -286,8 +286,8 @@ func main() {
 	// 	log.Fatalln(err)
 	// }
 
-	users, err := wishlistDB.GetUsersByGame(1)
-	fmt.Println(users)
+	//users, err := wishlistDB.GetGames()
+	//fmt.Println(users)
 
 	if err != nil {
 		log.Fatalln(err)
