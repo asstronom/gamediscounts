@@ -25,7 +25,7 @@ func HashAndSalt(pass []byte) string {
 // Create validation
 func Validation(values []validation) bool {
 	username := regexp.MustCompile(`^([A-Za-z0-9]{5,})+$`)
-	email := regexp.MustCompile(`^[A-Za-z0-9]+[@]+[A-Za-z0-9]+[.]+[A-Za-z]+$`)
+	//email := regexp.MustCompile(`^[A-Za-z0-9]+[@]+[A-Za-z0-9]+[.]+[A-Za-z]+$`)
 
 	for _, value := range values {
 		switch value.Valid {
@@ -34,7 +34,7 @@ func Validation(values []validation) bool {
 				return false
 			}
 		case "email":
-			if !email.MatchString(value.Value) {
+			if len(value.Value) < 8 {
 				return false
 			}
 		case "password":

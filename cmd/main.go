@@ -270,10 +270,6 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	if err != nil {
-		log.Fatalln(err)
-	}
-
 	ctx := context.Background()
 	s := server.Init(ctx, db, &userDB, wishlistDB)
 	addr := ":8080"
