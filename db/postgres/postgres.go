@@ -411,7 +411,7 @@ func (DB *GameDB) BestOffers(start int, count int, country Country) ([]GamePrice
 
 	for i := 0; i < len(ids); i++ {
 		row := DB.QueryRow(`
-		SELECT gameid, storeid, price, final, discount, free
+		SELECT gameid, storeid, initial, final, discount, free
 		FROM gameprice 
 		WHERE
 		gameid = $1 AND storeid = $2`,
