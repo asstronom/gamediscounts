@@ -274,7 +274,13 @@ func main() {
 	s := server.Init(ctx, db, &userDB, wishlistDB)
 	addr := ":8080"
 
-	handler := cors.Default().Handler(s)
+	c := cors.New(cors.Options{
+		AllowedOrigins:   []string{"*"},
+		AllowCredentials: true,
+		// Enable Debugging for testing, consider disabling in production
+		Debug: true,
+	})
+	handler := c.Handler(s)
 
 	httpServer := &http.Server{
 		Addr:         addr,

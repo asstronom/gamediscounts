@@ -77,6 +77,7 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 
 func SignIn(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Credentials", "true")
+	w.Header().Add("Access-Control-Allow-Method", "true")
 	creds := &Credentials{}
 	err := json.NewDecoder(r.Body).Decode(creds)
 	if err != nil {
