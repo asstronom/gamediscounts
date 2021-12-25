@@ -1,5 +1,5 @@
 # Specify the base image for the go app.
-FROM golang:1.15
+FROM golang:latest
 # Specify that we now need to execute any commands in this directory.
 WORKDIR /go/src/github.com/postgres-go
 # Copy everything from this project into the filesystem of the container.

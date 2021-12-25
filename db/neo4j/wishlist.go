@@ -124,6 +124,25 @@ func (DB *WishlistDB) GetWishlist(username string) ([]int64, error) {
 	}
 	return res, nil
 }
+func (DB *WishlistDB) GetAllGames() ([]int64, error) {
+	res := []int64{}
+	session := DB.db.NewSession(neo4j.SessionConfig{})
+	defer session.Close()
+
+	records, err := session.Run(`MATCH (u:User)-[r]->(n) RETURN n`, map[string]interface{}{})
+	if err != nil {
+		return nil, err
+	}
+	result, err := records.Collect()
+	if err != nil {
+		return nil, err
+	}
+	for _, r := range result {
+		res = append(res, r.Values[0].(neo4j.Node).Props["id"].(int64))
+	}
+	fmt.Println(res)
+	return res, nil
+}
 
 func (DB *WishlistDB) AddGameToWishList(username string, gameid int) error {
 	session := DB.db.NewSession(neo4j.SessionConfig{})

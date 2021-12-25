@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/rs/cors"
 	"net/http"
 	"time"
 
@@ -17,7 +18,6 @@ import (
 	//"net/http"
 
 	_ "github.com/lib/pq"
-	//"github.com/tidwall/gjson"
 )
 
 const (
@@ -133,7 +133,13 @@ func main() {
 	// }
 	// fmt.Println("info:", packageinfo)
 	//
-	//go initdb()
+	//go func() {
+	//	err := initdb()
+	//	if err != nil {
+	//		log.Println(err)
+	//	}
+	//}()
+
 	wishlistDB, er := wishlist.OpenDB(wishlistURI, wishUsername, wishPassword)
 
 	if er != nil {
@@ -196,10 +202,10 @@ func main() {
 	//
 	//fmt.Println(wishlistDB.GetWishlist("asstronom"))
 	//
-	// err := run()
-	// if err != nil {
-	// 	log.Fatalln(err)
-	// }
+	//err := run()
+	//if err != nil {
+	//	log.Fatalln(err)
+	//}
 	userDB, e := userdb.OpenDB("http://couchdb:couchdb@localhost:5984", "gamediscounts")
 	if e != nil {
 		fmt.Println("Wrong")
@@ -243,14 +249,14 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	// err = db.InitTables()
-	// if err != nil {
-	// 	log.Fatalln(err)
-	// }
-	// err = db.InitStores()
-	// if err != nil {
-	// 	log.Fatalln(err)
-	// }
+	//err = db.InitTables()
+	//if err != nil {
+	//	log.Fatalln(err)
+	//}
+	//err = db.InitStores()
+	//if err != nil {
+	//	log.Fatalln(err)
+	//}
 
 	// err = db.InitScreenshots()
 	// if err != nil {
@@ -269,42 +275,21 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	// games, err := db.BestOffers(0, 10, postgres.UA)
-	// if err != nil {
-	// 	log.Fatalln(err)
-	// }
-	// fmt.Println(games)
-
-	//games, err := db.SearchGame("Super")
-
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	// for _, g := range games {
-	// 	fmt.Println(g.Name, g.Id)
-	// }
-	// fmt.Println("len: ", len(games))
-
-	// err = wishlistDB.CheckIfGameExists(620)
-	// if err != nil {
-	// 	log.Fatalln(err)
-	// }
-
-	//users, err := wishlistDB.GetGames()
-	//fmt.Println(users)
-
-	if err != nil {
-		log.Fatalln(err)
-	}
-
 	ctx := context.Background()
 	s := server.Init(ctx, db, &userDB, wishlistDB)
 	addr := ":8080"
 
+	c := cors.New(cors.Options{
+		AllowedOrigins:   []string{"*"},
+		AllowCredentials: true,
+		// Enable Debugging for testing, consider disabling in production
+		Debug: true,
+	})
+	handler := c.Handler(s)
+
 	httpServer := &http.Server{
 		Addr:         addr,
-		Handler:      s,
+		Handler:      handler,
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 10 * time.Second,
 	}

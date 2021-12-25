@@ -9,8 +9,8 @@ import (
 
 	"github.com/gamediscounts/auth"
 	"github.com/gamediscounts/db/postgres"
-
 	"github.com/gorilla/mux"
+	mail "github.com/xhit/go-simple-mail/v2"
 )
 
 func (s *Server) HandleIndex() http.HandlerFunc {
@@ -37,6 +37,7 @@ func (s *Server) HandleIndex() http.HandlerFunc {
 		// 	games = append(games, game)
 		//}
 		fmt.Println(len(offers)) //check len of array for debugging
+		//fmt.Println(games)       //check len of array for debugging
 		if err != nil {
 			log.Println(err)
 		}
@@ -100,4 +101,81 @@ func (s *Server) WishlistAll() http.HandlerFunc {
 		fmt.Println(games)
 		err = json.NewEncoder(w).Encode(games)
 	}
+}
+func (s *Server) Notify() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		games, err := s.wishDB.GetAllGames()
+		if err != nil {
+			log.Println(err)
+		}
+		fmt.Println(games)
+
+		var discounted []int
+		for _, game := range games {
+			item, err2 := s.gameDB.GetGame(int(game), postgres.UA)
+			if err2 != nil {
+				log.Println(err2)
+			}
+			if item.Price[0].Discount > 0 {
+				discounted = append(discounted, int(game))
+			}
+		}
+		fmt.Println(discounted)
+		for _, item := range discounted {
+			userToBeNotified, err := s.wishDB.GetUsersByGame(item)
+			if err != nil {
+				log.Println(err)
+			}
+			var Emails []string
+			for _, username := range userToBeNotified {
+				user, err := s.userDB.GetUserByName(username)
+				if err != nil {
+					log.Println(err)
+				}
+				Emails = append(Emails, fmt.Sprintf(user.EmailName+"@"+user.EmailDomain))
+			}
+			fmt.Println(Emails)
+			game, err := s.gameDB.GetGame(item, postgres.UA)
+			if err != nil {
+				log.Println(err)
+			}
+			err = SendEmailNotification(Emails, game)
+			if err != nil {
+				log.Println(err)
+			}
+		}
+	}
+}
+func SendEmailNotification(emailStrSlice []string, game postgres.Game) error {
+	fmt.Println(emailStrSlice)
+	server := mail.SMTPServer{}
+	server.Host = "smtp.gmail.com"
+	server.Port = 587
+	server.Username = "gamediscountsiasa@gmail.com"
+	server.Password = "gamedisc123"
+	server.Encryption = mail.EncryptionTLS
+
+	smtpClient, err := server.Connect()
+	if err != nil {
+		log.Fatal(err)
+	}
+	email := mail.NewMSG()
+	email.SetFrom("From Gamediscounts <gamediscountsiasa@gmail.com>")
+	email.AddTo(emailStrSlice...)
+
+	info, err := json.Marshal(game)
+	if err != nil {
+		log.Println(err)
+	}
+	email.SetBodyData(mail.TextPlain, info)
+	//email.AddCc("another_you@example.com")
+	email.SetSubject("Discount Notification")
+	//email.SetBody(mail.TextHTML, htmlBody)
+	// Send email
+	err = email.Send(smtpClient)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("EMAIL NOTIFICATION SENT")
+	return err
 }

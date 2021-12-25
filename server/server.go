@@ -33,6 +33,7 @@ func Init(ctx context.Context, gameDB *postgres.GameDB, userDB *userdb.UserDB, w
 
 func (s *Server) respond(w http.ResponseWriter, r *http.Request, data interface{}, status int) {
 	w.Header().Add("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.WriteHeader(status)
 	if data != nil {
 		//dataJSON, _ := json.Marshal(data)
