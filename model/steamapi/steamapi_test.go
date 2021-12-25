@@ -170,6 +170,20 @@ func TestGetAppInfo(t *testing.T) {
 				"https://cdn.akamai.steamstatic.com/steam/apps/620/header.jpg?t=1610490805",
 				PriceOverview{16900, 16900, 0, "UAH", false},
 				[]string{"Action", "Adventure"},
+				[]string{`https:\/\/cdn.akamai.steamstatic.com\/steam\/apps\/620\/ss_f3f6787d74739d3b2ec8a484b5c994b3d31ef325.1920x1080.jpg?t=1610490805`,
+					`https:\/\/cdn.akamai.steamstatic.com\/steam\/apps\/620\/ss_6a4f5afdaa98402de9cf0b59fed27bab3256a6f4.1920x1080.jpg?t=1610490805`,
+					`https:\/\/cdn.akamai.steamstatic.com\/steam\/apps\/620\/ss_0cdd90fafc160b52d08b303d205f9fd4e83cf164.1920x1080.jpg?t=1610490805`,
+					`https:\/\/cdn.akamai.steamstatic.com\/steam\/apps\/620\/ss_ec35a739b4b33270eb170d9e561c5b016cba50a6.1920x1080.jpg?t=1610490805`,
+					`https:\/\/cdn.akamai.steamstatic.com\/steam\/apps\/620\/ss_3d13161104a04603a0524536770c5f74626db4c0.1920x1080.jpg?t=1610490805`,
+					`https:\/\/cdn.akamai.steamstatic.com\/steam\/apps\/620\/ss_8a772608d29ffd56ac013d2ac7c4388b96e87a21.1920x1080.jpg?t=1610490805`,
+					`https:\/\/cdn.akamai.steamstatic.com\/steam\/apps\/620\/ss_358127df30a766a1516ad139083c2bcec3fe0975.1920x1080.jpg?t=1610490805`,
+					`https:\/\/cdn.akamai.steamstatic.com\/steam\/apps\/620\/ss_410c7955c3cc8ca4a5e3c81daa214f534c9aabc8.1920x1080.jpg?t=1610490805`,
+					`https:\/\/cdn.akamai.steamstatic.com\/steam\/apps\/620\/ss_0e16bceacb6616a5ca4bc4ba4d28c7a0d06b671c.1920x1080.jpg?t=1610490805`,
+					`https:\/\/cdn.akamai.steamstatic.com\/steam\/apps\/620\/ss_d8f172249d6e89999c3692bf2c380921f197fd82.1920x1080.jpg?t=1610490805`,
+					`https:\/\/cdn.akamai.steamstatic.com\/steam\/apps\/620\/ss_fe9782ea3b43ef7af37b18e0a5c5f7bdc9c21f12.1920x1080.jpg?t=1610490805`,
+					`https:\/\/cdn.akamai.steamstatic.com\/steam\/apps\/620\/ss_3858536cbc0a07dfbe36e8f87b3f08bf3be45e54.1920x1080.jpg?t=1610490805`,
+				},
+				"Программа вечного тестирования была расширена для создания совместных головоломок для вас и ваших друзей!",
 			},
 			nil,
 		},
@@ -178,6 +192,7 @@ func TestGetAppInfo(t *testing.T) {
 	//ASSERT
 	for i, v := range testTable {
 		appinfo, err := GetAppInfo(v.appid, v.cc)
+		t.Log(appinfo)
 		if err != v.expectedErr {
 			t.Errorf("Errors dont match. %d", i)
 		}

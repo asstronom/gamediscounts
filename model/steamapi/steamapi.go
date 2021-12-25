@@ -92,15 +92,17 @@ type Package struct {
 }
 
 type AppInfo struct {
-	Appid       int
-	Name        string
-	Type        AppType
-	DLC         []int
-	Packages    []int
-	Description string
-	HeaderImage string
-	Price       PriceOverview
-	Genres      []string
+	Appid            int
+	Name             string
+	Type             AppType
+	DLC              []int
+	Packages         []int
+	Description      string
+	HeaderImage      string
+	Price            PriceOverview
+	Genres           []string
+	Screenshots      []string
+	ShortDescription string
 }
 
 func (a AppInfo) Equal(b AppInfo) bool {
@@ -309,6 +311,13 @@ func GetAppInfo(appid int, cc string) (AppInfo, error) {
 	result.Description = tagsPolicy.Sanitize(infoJson.Get("detailed_description").String())
 	result.Description = strings.ReplaceAll(result.Description, "\t", "")
 	result.HeaderImage = infoJson.Get("header_image").String()
+	for _, r := range infoJson.Get("screenshots").Array() {
+		result.Screenshots = append(result.Screenshots, r.Get("path_full").String())
+	}
+	result.ShortDescription = infoJson.Get("short_description").String()
+	// result.ShortDescription = tagsPolicy.Sanitize(infoJson.Get("short_description").String())
+	result.ShortDescription = strings.ReplaceAll(result.ShortDescription, "\t", "")
+	result.ShortDescription = strings.ReplaceAll(result.ShortDescription, "&quot;", `"`)
 	return result, nil
 }
 

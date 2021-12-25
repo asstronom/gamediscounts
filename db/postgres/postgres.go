@@ -77,14 +77,16 @@ type Package struct {
 }
 
 type Game struct {
-	Name        string      `json:"name"`
-	Id          int         `json:"id"`
-	Price       []GamePrice `json:"price"`
-	Description string      `json:"description"`
-	ImageURL    string      `json:"image_url"`
-	Genres      []string    `json:"genres"`
-	Packages    []int
-	DLCs        []int
+	Name             string      `json:"name"`
+	Id               int         `json:"id"`
+	Price            []GamePrice `json:"price"`
+	Description      string      `json:"description"`
+	ImageURL         string      `json:"image_url"`
+	Genres           []string    `json:"genres"`
+	ShortDescription string      `json:"shortdescription"`
+	Screenshots      []string    `json:"screenshots`
+	Packages         []int
+	DLCs             []int
 }
 
 func Open(credentials string) (*GameDB, error) {
@@ -286,6 +288,31 @@ func (DB *GameDB) InitTables() error {
 	return nil
 }
 
+func (DB *GameDB) InitScreenshots() error {
+	_, err := DB.Exec(`DROP TABLE IF EXISTS screenshots`)
+	if err != nil {
+		return err
+	}
+	_, err = DB.Exec(`CREATE TABLE screenshots (
+		id SERIAL PRIMARY KEY,
+		gameid INT REFERENCES game (id) ON UPDATE CASCADE ON DELETE CASCADE,
+		imageUrl TEXT
+		)`)
+
+	if err != nil {
+		return err
+	}
+	_, err = DB.Exec(`ALTER TABLE game ADD COLUMN shortdescription TEXT`)
+	if err != nil {
+		return err
+	}
+	_, err = DB.Exec(`ALTER TABLE dlc ADD COLUMN shortdescription TEXT`)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (DB *GameDB) InitStores() error {
 	//query := fmt.Sprintf(`INSERT INTO store (id, name) VALUES (%d, 'steam')`, SteamID)
 	_, err := DB.Exec(`INSERT INTO store (id, name) VALUES ($1, 'steam')`, SteamID)
@@ -475,14 +502,33 @@ func (DB *GameDB) GetGameName(gameid int) (string, error) {
 	return res, nil
 }
 
+func (DB *GameDB) getScreenshots(gameid int) ([]string, error) {
+	var result []string
+	rows, err := DB.Query(`SELECT id, imageurl FROM screenshots WHERE gameid = $1`, gameid)
+	if err != nil {
+		return nil, err
+	}
+	for rows.Next() {
+		var screenshot string
+		var curgameid int
+		err = rows.Scan(&curgameid, &screenshot)
+		if err != nil {
+			log.Println("error while getting screenshots for game ", curgameid)
+			return nil, err
+		}
+		result = append(result, screenshot)
+	}
+	return result, nil
+}
+
 func (DB *GameDB) GetGame(gameid int, country Country) (Game, error) {
 	var res Game
 	res.Id = gameid
-	row := DB.QueryRow(`SELECT name, description, headerimage FROM game WHERE id = $1`, gameid)
+	row := DB.QueryRow(`SELECT name, description, headerimage, shortdescription FROM game WHERE id = $1`, gameid)
 	if row.Err() != nil {
 		return res, row.Err()
 	}
-	err := row.Scan(&res.Name, &res.Description, &res.ImageURL)
+	err := row.Scan(&res.Name, &res.Description, &res.ImageURL, &res.ShortDescription)
 	if err != nil {
 		return res, err
 	}
@@ -506,6 +552,10 @@ func (DB *GameDB) GetGame(gameid int, country Country) (Game, error) {
 		return res, err
 	}
 	res.Price = append(res.Price, temp)
+	res.Screenshots, err = DB.getScreenshots(gameid)
+	if err != nil {
+		return res, err
+	}
 	return res, nil
 }
 
@@ -576,7 +626,8 @@ func (DB *GameDB) insertDLC(app steamapi.AppInfo, gameid int) error {
 	}
 	if row.Err() != nil {
 		if row.Err().Error() == `pq: duplicate key value violates unique constraint "dlc_name_key"` {
-			row = DB.QueryRow(`SELECT id FROM dlc WHERE name = $1`, app.Name)
+			row = DB.QueryRow(`UPDATE dlc SET description = $2, headerimage = $3, shortdescription = $4 WHERE name = $1 RETURNING id`,
+				app.Name, app.Description, app.HeaderImage, app.ShortDescription)
 			if row.Err() != nil {
 				return row.Err()
 			}
@@ -680,15 +731,28 @@ func (DB *GameDB) insertGamePrice(price GamePrice, storegameid string) error {
 	return nil
 }
 
+func (DB *GameDB) insertScreenshots(screenshots []string, appid int) error {
+	for _, v := range screenshots {
+		_, err := DB.Exec(`INSERT INTO screenshots (gameid, imageurl) VALUES ($1, $2)`, appid, v)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func (DB *GameDB) insertGame(app steamapi.AppInfo) error {
 	if app.Type != steamapi.Game {
 		return fmt.Errorf("not a game")
 	}
 	var appid int
-	row := DB.QueryRow(`INSERT INTO game (name, description, headerimage) VALUES ($1, $2, $3) RETURNING id`, app.Name, app.Description, app.HeaderImage)
+	row := DB.QueryRow(`INSERT INTO game (name, description, headerimage, shortdescription) VALUES ($1, $2, $3, $4) RETURNING id`,
+		app.Name, app.Description, app.HeaderImage, app.ShortDescription)
 	if row.Err() != nil {
 		if row.Err().Error() == `pq: duplicate key value violates unique constraint "game_name_key"` {
-			row = DB.QueryRow(`SELECT id FROM game WHERE name = $1`, app.Name)
+			row = DB.QueryRow(`UPDATE game SET  description = $2, headerimage = $3, shortdescription = $4 WHERE name = $1 RETURNING id`,
+				app.Name, app.Description, app.HeaderImage, app.ShortDescription)
 		} else {
 			return row.Err()
 		}
@@ -725,6 +789,11 @@ func (DB *GameDB) insertGame(app steamapi.AppInfo) error {
 		}
 	}
 
+	err = DB.insertScreenshots(app.Screenshots, appid)
+	if err != nil {
+		log.Println("error inserting screenshots")
+		return err
+	}
 	return nil
 }
 
@@ -805,14 +874,6 @@ func (DB *GameDB) RefreshFeatured() error {
 				return err
 			}
 		}
-		// _, err = DB.Exec(`INSERT INTO featured(gameid, storeid) VALUES ($1, $2)`, curGameId, SteamID)
-		// if err != nil {
-		// 	if err.Error() == `pq: duplicate key value violates unique constraint "featuredid"` {
-		// 		fmt.Printf("Duplicate game in featured Steam (gameid, storegameid): %d, %d\n", curGameId, ids[i])
-		// 	} else {
-		// 		return err
-		// 	}
-		// }
 	}
 
 	_, err = DB.Exec(`INSERT INTO featured (gameid, storeid) SELECT bestoffers.gameid, bestoffers.storeid FROM (SELECT price.gameid, price.storeid FROM (SELECT * FROM gameprice WHERE discount <> 0) AS price ORDER BY price.initial - price.final DESC) AS bestoffers ON conflict DO nothing`)
