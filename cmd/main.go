@@ -258,12 +258,17 @@ func main() {
 	//	log.Fatalln(err)
 	//}
 
-	//go func() {
-	//	err = db.InitDatabase()
-	//	if err != nil {
-	//		log.Fatalln(err)
-	//	}
-	//}()
+	// err = db.InitScreenshots()
+	// if err != nil {
+	// 	log.Fatalln(err)
+	// }
+
+	go func() {
+		err = db.InitDatabase()
+		if err != nil {
+			log.Fatalln(err)
+		}
+	}()
 
 	err = db.RefreshFeatured()
 	if err != nil {
