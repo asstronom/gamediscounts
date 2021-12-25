@@ -20,7 +20,7 @@ import (
 	_ "github.com/lib/pq"
 )
 
-const (
+var (
 	host     = "localhost"
 	port     = 5432
 	username = "user"

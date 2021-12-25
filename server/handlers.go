@@ -5,11 +5,13 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 
 	"github.com/gamediscounts/auth"
 	"github.com/gamediscounts/db/postgres"
 	"github.com/gorilla/mux"
+	"github.com/joho/godotenv"
 	mail "github.com/xhit/go-simple-mail/v2"
 )
 
@@ -62,6 +64,7 @@ func (s *Server) HandleSingleGame() http.HandlerFunc {
 }
 func (s *Server) WishlistAddItem() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+
 		vars := mux.Vars(r)
 		id := vars["id"]
 		gameID, err := strconv.Atoi(id)
@@ -72,6 +75,24 @@ func (s *Server) WishlistAddItem() http.HandlerFunc {
 		}
 		username, err := auth.GetTokenUsername(r)
 		err = s.wishDB.AddGameToWishList(username, gameID)
+		if err != nil {
+			log.Println(err)
+			return
+		}
+	}
+}
+func (s *Server) WishlistRemoveItem() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		id := vars["id"]
+		gameID, err := strconv.Atoi(id)
+		fmt.Println("id game of game to be removed:", gameID)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		username, err := auth.GetTokenUsername(r)
+		err = s.wishDB.RemoveSingleTrack(username, gameID)
 		if err != nil {
 			log.Println(err)
 			return
@@ -104,7 +125,7 @@ func (s *Server) WishlistAll() http.HandlerFunc {
 }
 func (s *Server) Notify() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		games, err := s.wishDB.GetAllGames()
+		games, err := s.wishDB.GetGames()
 		if err != nil {
 			log.Println(err)
 		}
@@ -144,38 +165,47 @@ func (s *Server) Notify() http.HandlerFunc {
 				log.Println(err)
 			}
 		}
+
 	}
 }
 func SendEmailNotification(emailStrSlice []string, game postgres.Game) error {
-	fmt.Println(emailStrSlice)
+	//	fmt.Println(emailStrSlice)
 	server := mail.SMTPServer{}
+	server.KeepAlive = true
 	server.Host = "smtp.gmail.com"
 	server.Port = 587
-	server.Username = "gamediscountsiasa@gmail.com"
-	server.Password = "gamedisc123"
+	err := godotenv.Load(".env")
+	if err != nil {
+		log.Fatalf("Error loading .env file")
+	}
+	server.Username = os.Getenv("MAIL")
+	server.Password = os.Getenv("MAIL_PASS")
 	server.Encryption = mail.EncryptionTLS
 
 	smtpClient, err := server.Connect()
 	if err != nil {
 		log.Fatal(err)
 	}
-	email := mail.NewMSG()
-	email.SetFrom("From Gamediscounts <gamediscountsiasa@gmail.com>")
-	email.AddTo(emailStrSlice...)
+	for _, item := range emailStrSlice {
 
-	info, err := json.Marshal(game)
-	if err != nil {
-		log.Println(err)
+		email := mail.NewMSG()
+		email.SetFrom("Gamediscounts <gamediscountsiasa@gmail.com>")
+		email.AddTo(item)
+
+		info, err := json.Marshal(game)
+		if err != nil {
+			log.Println(err)
+		}
+		email.SetBodyData(mail.TextPlain, info)
+		//email.AddCc("another_you@example.com")
+		email.SetSubject("Discount Notification")
+		//email.SetBody(mail.TextHTML, htmlBody)
+		// Send email
+		err = email.Send(smtpClient)
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Println("EMAIL NOTIFICATION SENT")
 	}
-	email.SetBodyData(mail.TextPlain, info)
-	//email.AddCc("another_you@example.com")
-	email.SetSubject("Discount Notification")
-	//email.SetBody(mail.TextHTML, htmlBody)
-	// Send email
-	err = email.Send(smtpClient)
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println("EMAIL NOTIFICATION SENT")
 	return err
 }

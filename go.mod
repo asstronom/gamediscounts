@@ -29,6 +29,7 @@ require (
 
 require (
 	github.com/golang-migrate/migrate/v4 v4.15.1
+	github.com/joho/godotenv v1.3.0
 	github.com/microcosm-cc/bluemonday v1.0.16
 	github.com/neo4j/neo4j-go-driver/v4 v4.4.0
 	github.com/rs/cors v1.8.0

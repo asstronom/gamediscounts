@@ -158,6 +158,8 @@ func GetTokenUsername(r *http.Request) (string, error) {
 }
 func IsAuthorized(endpoint func(http.ResponseWriter, *http.Request)) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Credentials", "true")
+		w.Header().Add("Access-Control-Allow-Method", "true")
 		c, err := r.Cookie("token")
 		if err != nil {
 			if err == http.ErrNoCookie {
@@ -238,8 +240,9 @@ func Refresh(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.SetCookie(w, &http.Cookie{
-		Name:    "session_token",
-		Value:   tokenString,
-		Expires: expirationTime,
+		Name:     "session_token",
+		Value:    tokenString,
+		Expires:  expirationTime,
+		HttpOnly: true,
 	})
 }
