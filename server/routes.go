@@ -15,6 +15,7 @@ func (s *Server) routes() {
 
 	//auth
 	s.router.HandleFunc("/register", auth.SignUp).Methods("POST")
+	s.router.HandleFunc("/logout", auth.Logout).Methods("POST")
 	s.router.HandleFunc("/login", auth.SignIn).Methods("POST")
 	s.router.HandleFunc("/refresh", auth.Refresh).Methods("GET")
 	//wishlish notification

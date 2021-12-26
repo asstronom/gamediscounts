@@ -228,6 +228,21 @@ func IsAuthorized(endpoint func(http.ResponseWriter, *http.Request)) http.Handle
 		}
 	}
 }
+
+func Logout(w http.ResponseWriter, r *http.Request) {
+
+	c := http.Cookie{
+		Name: "token"}
+	http.SetCookie(w, &c)
+
+	err := json.NewEncoder(w).Encode(map[string]interface{}{"message": "Logged out!"})
+	if err != nil {
+		log.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+}
+
 func Refresh(w http.ResponseWriter, r *http.Request) {
 	c, err := r.Cookie("token")
 	if err != nil {
