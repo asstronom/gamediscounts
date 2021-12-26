@@ -156,6 +156,7 @@ func GetTokenUsername(r *http.Request) (string, error) {
 	})
 	return claims.Username, err
 }
+
 func IsAuthorized(endpoint func(http.ResponseWriter, *http.Request)) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Credentials", "true")

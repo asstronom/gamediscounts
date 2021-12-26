@@ -101,6 +101,8 @@ func (s *Server) WishlistRemoveItem() http.HandlerFunc {
 }
 func (s *Server) WishlistAll() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Add("Access-Control-Allow-Method", "true")
 
 		username, err := auth.GetTokenUsername(r)
 		//wishlistDB, err := wishlist.OpenDB(wishlist.WishlistURI, wishlist.WishUsername, wishlist.WishPassword)
@@ -170,7 +172,7 @@ func (s *Server) Notify() http.HandlerFunc {
 }
 func SendEmailNotification(emailStrSlice []string, game postgres.Game) error {
 	//	fmt.Println(emailStrSlice)
-	server := smail.SMTPServer{}
+	server := mail.SMTPServer{}
 	server.KeepAlive = true
 	server.Host = "smtp.gmail.com"
 	server.Port = 587
