@@ -193,6 +193,7 @@ func IsAuthorized(endpoint func(http.ResponseWriter, *http.Request)) http.Handle
 		c, err := r.Cookie("token")
 		if err != nil {
 			if err == http.ErrNoCookie {
+				json.NewEncoder(w).Encode(nil) // iotii is fucking trash frond end dev
 				log.Println(err)
 				// If the cookie is not set, return an unauthorized status
 				w.WriteHeader(http.StatusUnauthorized)
