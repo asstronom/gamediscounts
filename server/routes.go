@@ -10,7 +10,7 @@ func (s *Server) routes() {
 	s.router.HandleFunc("/wishlist/{id}", auth.IsAuthorized(s.WishlistAddItem())).Methods("PUT")
 	s.router.HandleFunc("/wishlist/{id}", auth.IsAuthorized(s.WishlistRemoveItem())).Methods("DELETE")
 	s.router.HandleFunc("/wishlist", auth.IsAuthorized(s.WishlistAll())).Methods("GET")
-	//s.router.HandleFunc("/username", auth.IsAuthorized(GetUsername())).Methods("GET")
+	s.router.HandleFunc("/username", auth.IsAuthorized(auth.FetchUserName)).Methods("GET")
 	//s.router.HandleFunc("/wishlist", auth.IsAuthorized()).Methods("DELETE")
 
 	//auth

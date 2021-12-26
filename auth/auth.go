@@ -171,6 +171,20 @@ func GetTokenUsername(r *http.Request) (string, error) {
 	})
 	return claims.Username, err
 }
+func FetchUserName(w http.ResponseWriter, r *http.Request) {
+	username, err := GetTokenUsername(r)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		log.Println(err)
+		return
+	}
+	err = json.NewEncoder(w).Encode(map[string]string{"username": username})
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		log.Println(err)
+		return
+	}
+}
 
 func IsAuthorized(endpoint func(http.ResponseWriter, *http.Request)) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
