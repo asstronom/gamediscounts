@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	userdb "github.com/gamediscounts/db/couchdb"
+	wishlist "github.com/gamediscounts/db/neo4j"
 	"github.com/golang-jwt/jwt"
 	"github.com/leesper/couchdb-golang"
 	"golang.org/x/crypto/bcrypt"
@@ -55,13 +56,30 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 	//<----------------USER DB INSERTION CODE GOES HERE -------------------->
 	//DB[creds.Username] = string(hashedPassword) // testing map instead of DB
 	//db, err := userdb.OpenDB(userDatabaseURL, userDatabaseName)
-	db, err := userdb.OpenDB("http://couchdb:couchdb@localhost:5984", "gamediscounts")
+	userDB, err := userdb.OpenDB("http://couchdb:couchdb@localhost:5984", "gamediscounts")
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		log.Println(err)
 		return
 	}
-	_, err = db.AddUser(newUser)
+	_, er := userDB.AddUser(newUser)
+	if er != nil {
+		log.Fatalln("error opening wishlist: ", er)
+		return
+	}
+	wishlistDB, er := wishlist.OpenDB("neo4j://localhost:7687", "neo4j", "GuesgP4LPLS")
+	if er != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		log.Println(err)
+		return
+	}
+	err = wishlistDB.AddUser(newUser.Username)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		log.Println(err)
+		return
+	}
+
 	if err != nil {
 		log.Println(err)
 		w.WriteHeader(http.StatusForbidden)
@@ -70,9 +88,6 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
-	//fmt.Println(id)
-
-	//fmt.Println(DB)
 }
 
 func SignIn(w http.ResponseWriter, r *http.Request) {

@@ -16,7 +16,6 @@ import (
 )
 
 func (s *Server) HandleIndex() http.HandlerFunc {
-
 	return func(w http.ResponseWriter, r *http.Request) {
 		values := r.URL.Query()
 		fmt.Println(values)
@@ -64,6 +63,8 @@ func (s *Server) HandleSingleGame() http.HandlerFunc {
 }
 func (s *Server) WishlistAddItem() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("Access-Control-Allow-Method", "true")
+		w.Header().Set("Access-Control-Allow-Origin", "*")
 
 		vars := mux.Vars(r)
 		id := vars["id"]
@@ -83,6 +84,8 @@ func (s *Server) WishlistAddItem() http.HandlerFunc {
 }
 func (s *Server) WishlistRemoveItem() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Add("Access-Control-Allow-Method", "true")
 		vars := mux.Vars(r)
 		id := vars["id"]
 		gameID, err := strconv.Atoi(id)
@@ -103,11 +106,9 @@ func (s *Server) WishlistAll() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Add("Access-Control-Allow-Method", "true")
-
 		username, err := auth.GetTokenUsername(r)
 		//wishlistDB, err := wishlist.OpenDB(wishlist.WishlistURI, wishlist.WishUsername, wishlist.WishPassword)
 		wishlistIDSlice, err := s.wishDB.GetWishlist(username)
-		fmt.Println(wishlistIDSlice) // for debug
 		if err != nil {
 			log.Println(err)
 			w.WriteHeader(http.StatusInternalServerError)
