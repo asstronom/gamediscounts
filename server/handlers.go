@@ -3,6 +3,7 @@ package server
 import (
 	"encoding/json"
 	"fmt"
+	mail "github.com/xhit/go-simple-mail/v2"
 	"log"
 	"net/http"
 	"os"
@@ -12,7 +13,6 @@ import (
 	"github.com/gamediscounts/db/postgres"
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
-	mail "github.com/xhit/go-simple-mail/v2"
 )
 
 func (s *Server) HandleIndex() http.HandlerFunc {
@@ -170,7 +170,7 @@ func (s *Server) Notify() http.HandlerFunc {
 }
 func SendEmailNotification(emailStrSlice []string, game postgres.Game) error {
 	//	fmt.Println(emailStrSlice)
-	server := mail.SMTPServer{}
+	server := smail.SMTPServer{}
 	server.KeepAlive = true
 	server.Host = "smtp.gmail.com"
 	server.Port = 587
