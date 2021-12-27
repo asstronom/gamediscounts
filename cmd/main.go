@@ -249,19 +249,19 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	//err = db.InitTables()
-	//if err != nil {
-	//	log.Fatalln(err)
-	//}
-	//err = db.InitStores()
-	//if err != nil {
-	//	log.Fatalln(err)
-	//}
+	err = db.InitTables()
+	if err != nil {
+		log.Fatalln(err)
+	}
+	err = db.InitStores()
+	if err != nil {
+		log.Fatalln(err)
+	}
 
-	// err = db.InitScreenshots()
-	// if err != nil {
-	// 	log.Fatalln(err)
-	// }
+	err = db.InitScreenshots()
+	if err != nil {
+		log.Fatalln(err)
+	}
 
 	go func() {
 		err = db.InitDatabase()

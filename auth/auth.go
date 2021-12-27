@@ -64,7 +64,8 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 	}
 	_, er := userDB.AddUser(newUser)
 	if er != nil {
-		log.Fatalln("error opening wishlist: ", er)
+		w.WriteHeader(http.StatusInternalServerError)
+		log.Println(err)
 		return
 	}
 	wishlistDB, er := wishlist.OpenDB("neo4j://localhost:7687", "neo4j", "GuesgP4LPLS")
@@ -230,7 +231,6 @@ func IsAuthorized(endpoint func(http.ResponseWriter, *http.Request)) http.Handle
 }
 
 func Logout(w http.ResponseWriter, r *http.Request) {
-
 	c := http.Cookie{
 		Name: "token"}
 	http.SetCookie(w, &c)
