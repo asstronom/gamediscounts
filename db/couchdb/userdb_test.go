@@ -50,3 +50,28 @@ func TestAddUser(t *testing.T) {
 		t.Errorf("Error while cleaning up 2")
 	}
 }
+
+func TestUserGenres(t *testing.T) {
+	db, err := OpenDB("http://couchdb:couchdb@localhost:5984", "test")
+	if err != nil {
+		t.Errorf("Error opening database")
+	}
+	user := User{
+		Credentials{
+			"asstronom",
+			"pudgebooster",
+		},
+		"danya.live",
+		"gmail.com",
+		false,
+		false,
+		false,
+		couchdb.Document{},
+	}
+	_, err = db.AddUser(user)
+	if err != nil {
+		//t.Logf("error adding user %s", err.Error())
+	}
+	db.UpdateUserGenres("asstronom", []string{"Action", "Shooter"})
+	t.Log(db.GetUserGenres("asstronom"))
+}

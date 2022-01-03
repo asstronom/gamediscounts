@@ -1,0 +1,5 @@
+CREATE TABLE IF NOT EXISTS featured (
+		gameid INT REFERENCES game (id) ON UPDATE CASCADE ON DELETE CASCADE,
+		storeid INT REFERENCES store (id) ON UPDATE CASCADE ON DELETE CASCADE,
+        PRIMARY KEY (gameid, storeid)
+);

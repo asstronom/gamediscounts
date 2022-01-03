@@ -124,6 +124,7 @@ func (DB *WishlistDB) GetWishlist(username string) ([]int64, error) {
 	}
 	return res, nil
 }
+
 func (DB *WishlistDB) GetAllGames() ([]int64, error) {
 	res := []int64{}
 	session := DB.db.NewSession(neo4j.SessionConfig{})

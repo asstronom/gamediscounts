@@ -9,6 +9,17 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/source/github"
 )
 
-type PostMigrate struct {
-	migr *migrate.Migrate
+func MigrateGameDB() error {
+	m, err := migrate.New(
+		"file://sql",
+		"postgres://user:mypassword@localhost:5432/migratetest?sslmode=disable",
+	)
+	if err != nil {
+		return err
+	}
+	err = m.Up()
+	if err != nil {
+		return err
+	}
+	return nil
 }

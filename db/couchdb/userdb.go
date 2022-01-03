@@ -133,6 +133,18 @@ func (db *UserDB) AddUser(user User) (string, error) {
 	return docid, nil
 }
 
+func (db *UserDB) getUserMapByName(username string) (map[string]interface{}, error) {
+	selector := fmt.Sprintf("username == %s", username)
+	doc, err := db.db.Query(nil, selector, nil, nil, nil, []string{"_design/registration", "username"})
+	if err != nil {
+		return nil, err
+	}
+	if len(doc) != 1 {
+		return nil, fmt.Errorf("error while searching")
+	}
+	return doc[0], nil
+}
+
 func (db *UserDB) GetUserByName(username string) (User, error) {
 	selector := fmt.Sprintf("username == %s", username)
 	doc, err := db.db.Query(nil, selector, nil, nil, nil, []string{"_design/registration", "username"})
@@ -159,6 +171,44 @@ func (db *UserDB) RemoveUserByName(username string) error {
 	}
 	db.db.Delete(user.GetID())
 	return nil
+}
+
+func (db *UserDB) UpdateUserGenres(username string, genres []string) error {
+	user, err := db.GetUserByName(username)
+	if err != nil {
+		return err
+	}
+	jsonmap, err := couchdb.ToJSONCompatibleMap(user)
+	jsonmap["genres"] = genres
+	if err != nil {
+		return err
+	}
+	res, err := db.db.Update([]map[string]interface{}{jsonmap}, map[string]interface{}{})
+	if err != nil {
+		return err
+	}
+	err = res[0].Err
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (db *UserDB) GetUserGenres(username string) ([]string, error) {
+	usermap, err := db.getUserMapByName(username)
+	if err != nil {
+		return nil, err
+	}
+	type Genres struct {
+		Array []string `json:"genres"`
+		couchdb.Document
+	}
+	var genres Genres
+	err = couchdb.FromJSONCompatibleMap(genres, usermap)
+	if err != nil {
+		return nil, err
+	}
+	return genres.Array, nil
 }
 
 // func (db *UserDB) GetUserByEmail(emailName string, emailDomain string) (User, error) {
