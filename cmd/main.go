@@ -20,7 +20,7 @@ import (
 	_ "github.com/lib/pq"
 )
 
-const (
+var (
 	host     = "localhost"
 	port     = 5432
 	username = "user"
@@ -249,19 +249,19 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	//err = db.InitTables()
-	//if err != nil {
-	//	log.Fatalln(err)
-	//}
-	//err = db.InitStores()
-	//if err != nil {
-	//	log.Fatalln(err)
-	//}
+	err = db.InitTables()
+	if err != nil {
+		log.Fatalln(err)
+	}
+	err = db.InitStores()
+	if err != nil {
+		log.Fatalln(err)
+	}
 
-	// err = db.InitScreenshots()
-	// if err != nil {
-	// 	log.Fatalln(err)
-	// }
+	err = db.InitScreenshots()
+	if err != nil {
+		log.Fatalln(err)
+	}
 
 	go func() {
 		err = db.InitDatabase()
@@ -281,6 +281,7 @@ func main() {
 
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{"*"},
+		AllowedMethods:   []string{"POST", "GET", "PUT", "DELETE", "OPTIONS"},
 		AllowCredentials: true,
 		// Enable Debugging for testing, consider disabling in production
 		Debug: true,

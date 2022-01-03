@@ -187,7 +187,7 @@ func (DB *WishlistDB) GetGames() ([]int64, error) {
 	session := DB.db.NewSession(neo4j.SessionConfig{})
 	defer session.Close()
 
-	records, err := session.Run(`MATCH (u:Game{})<--() RETURN u`, map[string]interface{}{})
+	records, err := session.Run(`MATCH (u:Game{})<--() RETURN  DISTINCT u`, map[string]interface{}{})
 	if err != nil {
 		return nil, err
 	}
